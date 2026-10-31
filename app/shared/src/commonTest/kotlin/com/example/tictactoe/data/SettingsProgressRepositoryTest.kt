@@ -8,10 +8,12 @@ import com.russhwolf.settings.MapSettings
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SettingsProgressRepositoryTest {
     private val key = "player_progress_v1"
+    private val corruptKey = "player_progress_v1_corrupt"
 
     private val sample = PlayerProgress(
         xp = 345,
@@ -62,21 +64,63 @@ class SettingsProgressRepositoryTest {
     }
 
     @Test
-    fun garbageGivesDefaultsWithoutThrowing() {
+    fun garbageGivesDefaultsAndKeepsTheRawBlobInABackupKey() {
         val settings = MapSettings()
         settings.putString(key, "{not json")
         assertEquals(PlayerProgress(), SettingsProgressRepository(settings).load())
+        assertEquals("{not json", settings.getStringOrNull(corruptKey))
     }
 
     @Test
-    fun badDateGivesDefaultsWithoutThrowing() {
+    fun aLaterUnreadableBlobDoesNotOverwriteTheFirstBackup() {
         val settings = MapSettings()
-        settings.putString(key, """{"streak":{"lastCompleted":"not-a-date"}}""")
-        assertEquals(PlayerProgress(), SettingsProgressRepository(settings).load())
+        settings.putString(key, "first garbage")
+        SettingsProgressRepository(settings).load()
+        settings.putString(key, "second garbage")
+        SettingsProgressRepository(settings).load()
+        assertEquals("first garbage", settings.getStringOrNull(corruptKey))
     }
 
     @Test
-    fun unknownFieldAndHigherVersionLoadKnownFields() {
+    fun readableDataWritesNoBackup() {
+        val settings = MapSettings()
+        SettingsProgressRepository(settings).save(sample)
+        SettingsProgressRepository(settings).load()
+        assertNull(settings.getStringOrNull(corruptKey))
+    }
+
+    @Test
+    fun badDateKeepsXpStatsAndStreakCounts() {
+        val settings = MapSettings()
+        settings.putString(
+            key,
+            """{"version":1,"xp":77,"stats":{"Easy":{"wins":2}},"streak":{"current":3,"best":5,"freezes":1,"lastCompleted":"not-a-date"}}""",
+        )
+        val loaded = SettingsProgressRepository(settings).load()
+        assertEquals(77, loaded.xp)
+        assertEquals(DifficultyStats(wins = 2), loaded.stats[Difficulty.Easy])
+        assertEquals(StreakState(current = 3, best = 5, freezes = 1, lastCompleted = null), loaded.streak)
+    }
+
+    @Test
+    fun unknownDifficultyKeyIsDroppedAndXpIsKept() {
+        val settings = MapSettings()
+        settings.putString(key, """{"version":1,"xp":90,"stats":{"Nightmare":{"wins":4},"Medium":{"draws":3}}}""")
+        val loaded = SettingsProgressRepository(settings).load()
+        assertEquals(90, loaded.xp)
+        assertEquals(mapOf(Difficulty.Medium to DifficultyStats(draws = 3)), loaded.stats)
+    }
+
+    @Test
+    fun versionIsPresentInWrittenJson() {
+        val settings = MapSettings()
+        SettingsProgressRepository(settings).save(PlayerProgress())
+        val raw = settings.getString(key, "")
+        assertTrue(raw.contains("\"version\":1"), raw)
+    }
+
+    @Test
+    fun unknownFieldsAreIgnoredAndTheStoredVersionIsReadBack() {
         val settings = MapSettings()
         settings.putString(key, """{"version":9,"xp":42,"futureField":{"a":1},"stats":{"Easy":{"wins":1}}}""")
         val loaded = SettingsProgressRepository(settings).load()
