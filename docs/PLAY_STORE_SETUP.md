@@ -81,7 +81,12 @@ base64 -w 0 tictactoe-upload-key.jks
    ```
    studio.gameloop.tictactoe
    ```
-6. Complete the mandatory **App Content** questionnaires under **Policy and programs -> App content** (Privacy policy, Ads, Content rating, Target audience, Data safety).
+6. Complete the mandatory **App Content** questionnaires under **Policy and programs -> App content**:
+   - **Privacy Policy URL:** Use `https://ashrafkhan19.github.io/tic-tac-toe/privacy-policy.html` (see [docs/privacy-policy.html](file:///Users/user/Documents/Tictactoe/docs/privacy-policy.html) and [docs/PRIVACY_POLICY.md](file:///Users/user/Documents/Tictactoe/docs/PRIVACY_POLICY.md)).
+   - **Ads:** Select "No, my app does not contain ads".
+   - **App Access:** Select "All functionality is available without special access".
+   - **Data Safety:** Declare that no user data is collected or shared.
+   - **Content rating & Target audience:** Everyone / 13+.
 
 ---
 

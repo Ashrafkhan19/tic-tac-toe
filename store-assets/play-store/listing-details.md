@@ -112,3 +112,9 @@ When setting up the listing in Google Play Console:
 5. **App Access & Ads:**
    - Contains Ads: Select **No** (unless you integrate ad SDKs later)
    - App Access: All functionality is available without special access
+6. **Privacy Policy URL (Required by Google Play):**
+   - **GitHub Pages URL:** `https://ashrafkhan19.github.io/tic-tac-toe/privacy-policy.html`
+   - *(Setup: GitHub Repo -> Settings -> Pages -> Build and deployment -> Source: Deploy from a branch -> Branch: `main` / Folder: `/docs`)*
+   - **Alternative Direct URL:** `https://raw.githubusercontent.com/Ashrafkhan19/tic-tac-toe/main/docs/privacy-policy.html`
+
+
