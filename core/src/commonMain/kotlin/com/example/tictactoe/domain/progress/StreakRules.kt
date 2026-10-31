@@ -41,4 +41,9 @@ fun StreakState.displayed(today: LocalDate): Int {
     return if (gap <= 1 || (gap == 2 && freezes > 0)) current else 0
 }
 
-fun StreakState.isAtRisk(today: LocalDate): Boolean = current > 0 && lastCompleted != today
+/**
+ * True when a streak still shown on [today] is waiting on today's challenge: last completed one or two
+ * days ago. False for a lapsed streak and when [lastCompleted] is after [today] (clock moved backwards).
+ */
+fun StreakState.isAtRisk(today: LocalDate): Boolean =
+    displayed(today) > 0 && gapDays(today).let { it != null && it in 1..2 }

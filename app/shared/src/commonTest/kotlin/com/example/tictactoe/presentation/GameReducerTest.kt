@@ -9,6 +9,7 @@ import com.example.tictactoe.domain.model.Match
 import com.example.tictactoe.domain.model.MatchSettings
 import com.example.tictactoe.domain.model.Mode
 import com.example.tictactoe.domain.progress.PlayerProgress
+import com.example.tictactoe.domain.progress.StreakState
 import com.example.tictactoe.domain.usecase.ApplyComputerMove
 import com.example.tictactoe.domain.usecase.ChangeSettings
 import com.example.tictactoe.domain.usecase.PlayHumanMove
@@ -109,10 +110,30 @@ class GameReducerTest {
     }
 
     @Test
-    fun leaveDailyChallengeReturnsToFreshFreePlay() {
-        val s = run(withChallenge, Intent.StartDailyChallenge, Intent.CellTapped(5), Intent.LeaveDailyChallenge)
+    fun leaveDailyChallengeRestoresThePreChallengeMatch() {
+        val start = withChallenge.copy(match = Match(MatchSettings(Mode.TwoPlayer, Difficulty.Easy)))
+        val freePlay = run(start, *taps(0, 3, 1, 4, 2), Intent.NewRound, Intent.CellTapped(8))
+        assertEquals(1, freePlay.xWins)
+        val s = run(freePlay, Intent.StartDailyChallenge, Intent.CellTapped(5), Intent.NewRound, Intent.LeaveDailyChallenge)
         assertFalse(s.inChallenge)
-        assertEquals(Match(), s.match)
+        assertEquals(freePlay.match, s.match)
         assertEquals(challenge, s.todayChallenge)
+    }
+
+    @Test
+    fun startingTheChallengeAgainKeepsTheOriginalFreePlayMatch() {
+        val freePlay = run(withChallenge, Intent.DifficultySelected(Difficulty.Medium), Intent.CellTapped(8))
+        val s = run(freePlay, Intent.StartDailyChallenge, Intent.StartDailyChallenge, Intent.LeaveDailyChallenge)
+        assertEquals(freePlay.match, s.match)
+    }
+
+    @Test
+    fun challengeIsDoneWhenCompletedOnOrAfterItsDate() {
+        fun completedOn(date: LocalDate?) = withChallenge.copy(progress = PlayerProgress(streak = StreakState(current = 1, lastCompleted = date)))
+        assertFalse(completedOn(null).dailyChallengeDone)
+        assertFalse(completedOn(LocalDate(2026, 11, 1)).dailyChallengeDone)
+        assertTrue(completedOn(day).dailyChallengeDone)
+        assertTrue(completedOn(LocalDate(2026, 11, 3)).dailyChallengeDone, "clock moved backwards after completing a later day")
+        assertFalse(UiState(today = day).dailyChallengeDone, "nothing is done while loading")
     }
 }

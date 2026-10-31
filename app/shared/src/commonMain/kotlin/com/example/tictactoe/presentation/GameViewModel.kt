@@ -11,6 +11,7 @@ import com.example.tictactoe.domain.time.TodayProvider
 import com.example.tictactoe.domain.usecase.ChooseComputerMove
 import com.example.tictactoe.domain.usecase.CompleteDailyChallenge
 import com.example.tictactoe.domain.usecase.RecordGameResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -40,13 +41,23 @@ class GameViewModel(
     private var computerJob: Job? = null
     private var challengeJob: Job? = null
 
+    /** Play was tapped while the (new day's) challenge was still generating: start it once it arrives. */
+    private var startWhenLoaded = false
+
     init {
         loadChallengeFor(_state.value.today)
     }
 
     fun onIntent(intent: Intent) {
+        if (intent != Intent.RefreshDate) startWhenLoaded = false
         when (intent) {
             Intent.RefreshDate -> refreshDate()
+            Intent.StartDailyChallenge -> {
+                computerJob?.cancel()
+                // The app may have stayed in the foreground past midnight: never start yesterday's puzzle.
+                refreshDate()
+                if (_state.value.todayChallenge == null) startWhenLoaded = true else dispatch(intent)
+            }
             Intent.LeaveDailyChallenge -> {
                 computerJob?.cancel()
                 dispatch(intent)
@@ -96,8 +107,20 @@ class GameViewModel(
     private fun loadChallengeFor(date: LocalDate) {
         challengeJob?.cancel()
         challengeJob = viewModelScope.launch {
-            val challenge = withContext(computerDispatcher) { challenges.forDate(date) }
+            val challenge = try {
+                withContext(computerDispatcher) { challenges.forDate(date) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // No banner today rather than a crash; free play is unaffected.
+                startWhenLoaded = false
+                return@launch
+            }
             _state.value = reducer.challengeLoaded(_state.value, challenge)
+            if (startWhenLoaded && _state.value.todayChallenge != null) {
+                startWhenLoaded = false
+                dispatch(Intent.StartDailyChallenge)
+            }
         }
     }
 

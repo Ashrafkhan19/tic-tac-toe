@@ -109,6 +109,17 @@ class StreakTest {
     }
 
     @Test
+    fun atRiskOnlyForALiveStreakOneOrTwoDaysOld() {
+        val s = StreakState().completed(d2)
+        assertFalse(s.isAtRisk(d1), "clock moved backwards: lastCompleted is in the future")
+        assertTrue(s.isAtRisk(d3))
+        assertFalse(s.isAtRisk(d4), "gap of two without a freeze has lapsed")
+        val frozen = s.copy(freezes = 1)
+        assertTrue(frozen.isAtRisk(d4), "gap of two bridged by a freeze")
+        assertFalse(frozen.isAtRisk(LocalDate(2026, 11, 5)))
+    }
+
+    @Test
     fun completeDailyChallengeIsIdempotent() {
         val use = CompleteDailyChallenge()
         val once = use(PlayerProgress(), d1)

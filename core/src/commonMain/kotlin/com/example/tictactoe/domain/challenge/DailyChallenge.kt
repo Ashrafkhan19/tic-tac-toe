@@ -11,10 +11,10 @@ data class DailyChallenge(val date: LocalDate, val game: GameState, val movesToW
 /**
  * Picks the same puzzle for a given date on every device: X to move with a forced win in the
  * weekday's number of moves. Selection uses only integer arithmetic on the epoch day, so it does
- * not depend on any platform random number generator.
+ * not depend on any platform random number generator. Open only so tests can substitute a failing generator.
  */
-class DailyChallengeGenerator {
-    fun forDate(date: LocalDate): DailyChallenge {
+open class DailyChallengeGenerator {
+    open fun forDate(date: LocalDate): DailyChallenge {
         val movesToWin = effectiveTarget(weekdayTarget(date.dayOfWeek))
         val pool = Pools.byMovesToWin.getValue(movesToWin)
         val index = mix(date.toEpochDays()).mod(pool.size.toLong()).toInt()

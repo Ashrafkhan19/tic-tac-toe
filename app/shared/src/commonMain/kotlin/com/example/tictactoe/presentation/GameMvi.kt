@@ -17,6 +17,7 @@ import kotlinx.datetime.LocalDate
 /**
  * Everything the screen renders: the domain [Match] plus the player's saved [progress].
  * [todayChallenge] is null while the puzzle for [today] is still being generated off the main thread.
+ * [freePlay] holds the free-play match set aside while [inChallenge], restored on leaving.
  */
 data class UiState(
     val match: Match = Match(),
@@ -24,6 +25,7 @@ data class UiState(
     val today: LocalDate,
     val todayChallenge: DailyChallenge? = null,
     val inChallenge: Boolean = false,
+    val freePlay: Match? = null,
 ) {
     val game: GameState get() = match.game
     val mode: Mode get() = match.settings.mode
@@ -32,6 +34,14 @@ data class UiState(
     val oWins: Int get() = match.scoreboard.oWins
     val draws: Int get() = match.scoreboard.draws
     val isComputerTurn: Boolean get() = match.isComputerTurn
+
+    /** Today's challenge is already won. `>=` so a clock moved backwards never re-offers a puzzle that cannot be credited. */
+    val dailyChallengeDone: Boolean
+        get() {
+            val challengeDate = todayChallenge?.date ?: return false
+            val last = progress.streak.lastCompleted ?: return false
+            return last >= challengeDate
+        }
 }
 
 sealed interface Intent {
@@ -76,10 +86,15 @@ class GameReducer(
                 else state.copy(match = resetScores(match))
             Intent.StartDailyChallenge -> when (val today = state.todayChallenge) {
                 null -> state
-                else -> state.copy(match = challengeMatch(today), inChallenge = true)
+                else -> state.copy(
+                    match = challengeMatch(today),
+                    inChallenge = true,
+                    freePlay = if (state.inChallenge) state.freePlay else match,
+                )
             }
             Intent.LeaveDailyChallenge ->
-                if (state.inChallenge) state.copy(match = Match(), inChallenge = false) else state
+                if (state.inChallenge) state.copy(match = state.freePlay ?: Match(), inChallenge = false, freePlay = null)
+                else state
             Intent.RefreshDate -> state
         }
     }

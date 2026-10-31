@@ -1,5 +1,6 @@
 package com.example.tictactoe.presentation
 
+import com.example.tictactoe.domain.challenge.DailyChallenge
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.model.Difficulty
 import com.example.tictactoe.domain.model.GameState
@@ -61,6 +62,7 @@ class GameViewModelTest {
         computer: ComputerPlayer = ComputerPlayer { 4 },
         thinkTimeMs: Long = 450,
         repository: ProgressRepository = this.repository,
+        challenges: DailyChallengeGenerator = generator,
     ) = GameViewModel(
         reducer = GameReducer(PlayHumanMove(), ApplyComputerMove(), StartNextRound(), ChangeSettings(), ResetScores()),
         chooseComputerMove = ChooseComputerMove { computer },
@@ -68,7 +70,7 @@ class GameViewModelTest {
         recordGameResult = RecordGameResult(),
         completeDailyChallenge = CompleteDailyChallenge(),
         today = TodayProvider { today },
-        challenges = generator,
+        challenges = challenges,
         computerDispatcher = dispatcher,
         thinkTimeMs = thinkTimeMs,
     )
@@ -314,17 +316,51 @@ class GameViewModelTest {
 
     @Test
     fun leaveDailyChallengeRestoresFreePlayAndCatchesUpWithTheDate() = runTest(dispatcher) {
-        val vm = viewModel(computer = greedyComputer, thinkTimeMs = 0)
+        val vm = viewModel(computer = passiveComputer, thinkTimeMs = 0)
         advanceUntilIdle()
+        vm.onIntent(Intent.DifficultySelected(Difficulty.Easy))
+        listOf(0, 1, 2).forEach { tap(vm, it) }
+        vm.onIntent(Intent.NewRound)
+        val freePlay = vm.state.value.match
+        assertEquals(1, freePlay.scoreboard.xWins)
         vm.onIntent(Intent.StartDailyChallenge)
         tap(vm, vm.state.value.game.board.emptyCells.first())
         today = dayD.plus(DatePeriod(days = 1))
         vm.onIntent(Intent.LeaveDailyChallenge)
         assertFalse(vm.state.value.inChallenge)
-        assertEquals(Match(), vm.state.value.match)
+        assertEquals(freePlay, vm.state.value.match)
+        assertEquals(Difficulty.Easy, vm.state.value.difficulty)
         advanceUntilIdle()
         assertEquals(today, vm.state.value.today)
         assertNotNull(vm.state.value.todayChallenge)
         assertEquals(today, vm.state.value.todayChallenge?.date)
+    }
+
+    @Test
+    fun playTappedAfterMidnightInTheForegroundStartsTheNewDaysPuzzle() = runTest(dispatcher) {
+        val vm = viewModel(thinkTimeMs = 0)
+        advanceUntilIdle()
+        val dayAfter = dayD.plus(DatePeriod(days = 1))
+        today = dayAfter
+        vm.onIntent(Intent.StartDailyChallenge)
+        advanceUntilIdle()
+        assertEquals(dayAfter, vm.state.value.today)
+        assertEquals(dayAfter, vm.state.value.todayChallenge?.date)
+        assertTrue(vm.state.value.inChallenge)
+        assertEquals(generator.forDate(dayAfter).game, vm.state.value.game)
+    }
+
+    @Test
+    fun aFailingGeneratorLeavesNoChallengeAndAPlayableBoard() = runTest(dispatcher) {
+        val failing = object : DailyChallengeGenerator() {
+            override fun forDate(date: LocalDate): DailyChallenge = error("boom")
+        }
+        val vm = viewModel(thinkTimeMs = 0, challenges = failing)
+        advanceUntilIdle()
+        assertNull(vm.state.value.todayChallenge)
+        vm.onIntent(Intent.StartDailyChallenge)
+        assertFalse(vm.state.value.inChallenge)
+        tap(vm, 0)
+        assertEquals(Mark.X, vm.state.value.game.board.cells[0])
     }
 }
