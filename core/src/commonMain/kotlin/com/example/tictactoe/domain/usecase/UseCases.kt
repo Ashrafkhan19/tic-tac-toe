@@ -10,6 +10,8 @@ import com.example.tictactoe.domain.progress.DifficultyStats
 import com.example.tictactoe.domain.progress.GameResult
 import com.example.tictactoe.domain.progress.PlayerProgress
 import com.example.tictactoe.domain.progress.XpRules
+import com.example.tictactoe.domain.progress.completed
+import kotlinx.datetime.LocalDate
 
 /** A human taps a cell. Ignored while it is the computer's turn. */
 class PlayHumanMove {
@@ -54,6 +56,18 @@ class RecordGameResult {
         return progress.copy(
             xp = progress.xp + XpRules.forGame(settings.difficulty, result),
             stats = progress.stats + (settings.difficulty to stats.record(result)),
+        )
+    }
+}
+
+/** Marks the daily challenge for [challengeDate] complete: advances the streak and awards the bonus once. */
+class CompleteDailyChallenge {
+    operator fun invoke(progress: PlayerProgress, challengeDate: LocalDate): PlayerProgress {
+        val last = progress.streak.lastCompleted
+        if (last != null && last >= challengeDate) return progress
+        return progress.copy(
+            xp = progress.xp + XpRules.CHALLENGE_BONUS,
+            streak = progress.streak.completed(challengeDate),
         )
     }
 }
