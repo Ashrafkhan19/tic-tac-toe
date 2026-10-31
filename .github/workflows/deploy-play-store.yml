@@ -71,6 +71,10 @@ jobs:
         env:
           PLAY_STORE_KEYSTORE_BASE64: ${{ secrets.PLAY_STORE_KEYSTORE_BASE64 }}
         run: |
+          if [ -z "$PLAY_STORE_KEYSTORE_BASE64" ]; then
+            echo "::error::Secret PLAY_STORE_KEYSTORE_BASE64 is missing or empty. Please configure repository secrets."
+            exit 1
+          fi
           echo "$PLAY_STORE_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/keystore.jks"
 
       - name: Build Release App Bundle
@@ -80,7 +84,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          ./gradlew :app:androidApp:bundleRelease -PversionCode=$VERSION_CODE -PversionName=$VERSION_NAME
+          ./gradlew :app:androidApp:bundleRelease "-PversionCode=$VERSION_CODE" "-PversionName=$VERSION_NAME"
 
       - name: Archive App Bundle and Mapping Artifacts
         uses: actions/upload-artifact@v4
@@ -96,6 +100,10 @@ jobs:
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
+          if [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error::Secret PLAY_SERVICE_ACCOUNT_JSON is missing or empty. Please configure repository secrets."
+            exit 1
+          fi
           if echo "$PLAY_SERVICE_ACCOUNT_JSON" | grep -q '^[[:space:]]*{'; then
             echo "$PLAY_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/service_account.json"
           else
@@ -109,5 +117,6 @@ jobs:
           packageName: studio.gameloop.tictactoe
           releaseFiles: app/androidApp/build/outputs/bundle/release/*.aab
           track: ${{ github.event.inputs.track || 'internal' }}
-          mappingFile: app/androidApp/build/outputs/mapping/release/mapping.txt
+          mappingFile: ${{ hashFiles('app/androidApp/build/outputs/mapping/release/mapping.txt') != '' && 'app/androidApp/build/outputs/mapping/release/mapping.txt' || '' }}
           status: completed
+
