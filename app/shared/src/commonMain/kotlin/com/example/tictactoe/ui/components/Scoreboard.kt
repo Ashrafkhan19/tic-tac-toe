@@ -70,7 +70,7 @@ private fun ScoreCard(label: String, value: Int, accent: Color, active: Boolean,
             .clip(shape)
             .background(if (active) accent.copy(alpha = 0.14f) else colors.cell)
             .border(if (active) 2.dp else 1.dp, border, shape)
-            .padding(vertical = 12.dp, horizontal = 8.dp),
+            .padding(vertical = 6.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         AnimatedContent(
@@ -82,7 +82,7 @@ private fun ScoreCard(label: String, value: Int, accent: Color, active: Boolean,
         ) { score ->
             Text(
                 text = score.toString(),
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = accent,
             )
         }

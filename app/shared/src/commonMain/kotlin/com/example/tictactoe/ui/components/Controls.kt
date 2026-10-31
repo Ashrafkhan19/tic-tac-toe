@@ -10,41 +10,37 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import com.example.tictactoe.ui.theme.LocalGameColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.tictactoe.domain.model.Difficulty
 import com.example.tictactoe.domain.model.Mode
 import com.example.tictactoe.presentation.Intent
 import com.example.tictactoe.presentation.UiState
+import com.example.tictactoe.ui.theme.LocalGameColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,16 +65,45 @@ fun ModeSelector(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = M
     }
 }
 
+/** Above this font scale three labels no longer fit side by side, so the choices stack as radio rows. */
+internal const val LargeFontScale = 1.3f
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> Segmented(options: List<Pair<String, T>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    if (LocalDensity.current.fontScale > LargeFontScale) {
+        StackedChoices(options, selected, onSelect, modifier)
+        return
+    }
     SingleChoiceSegmentedButtonRow(modifier.fillMaxWidth()) {
         options.forEachIndexed { index, (label, value) ->
             SegmentedButton(
                 selected = value == selected,
                 onClick = { onSelect(value) },
                 shape = SegmentedButtonDefaults.itemShape(index, options.size),
-            ) { Text(label, maxLines = 1) }
+            ) {
+                // Two lines before ever clipping a word.
+                Text(label, maxLines = 2, textAlign = TextAlign.Center, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+@Composable
+private fun <T> StackedChoices(options: List<Pair<String, T>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier) {
+    val colors = LocalGameColors.current
+    Column(modifier.fillMaxWidth().selectableGroup()) {
+        options.forEach { (label, value) ->
+            Row(
+                Modifier.fillMaxWidth()
+                    .selectable(selected = value == selected, role = Role.RadioButton, onClick = { onSelect(value) })
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                RadioButton(selected = value == selected, onClick = null)
+                Text(label, color = colors.onSurface, style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
 }
@@ -101,7 +126,12 @@ fun ActionButtons(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = 
                 scaleX = s
                 scaleY = s
             },
-        ) { Text(if (ui.inChallenge) "Retry" else "New round") }
-        OutlinedButton(onClick = { onIntent(Intent.ResetScores) }, modifier = Modifier.weight(1f)) { Text("Reset scores") }
+        ) { Text(if (ui.inChallenge) "Retry" else "New round", textAlign = TextAlign.Center) }
+        // In a challenge Retry already restarts the puzzle and there is no session score to reset.
+        if (!ui.inChallenge) {
+            OutlinedButton(onClick = { onIntent(Intent.ResetScores) }, modifier = Modifier.weight(1f)) {
+                Text("Reset scores", textAlign = TextAlign.Center)
+            }
+        }
     }
 }

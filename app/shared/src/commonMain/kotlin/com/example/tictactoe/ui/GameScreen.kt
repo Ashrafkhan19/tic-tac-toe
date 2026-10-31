@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -46,9 +47,9 @@ import com.example.tictactoe.ui.components.Board
 import com.example.tictactoe.ui.components.ChallengeHeader
 import com.example.tictactoe.ui.components.Confetti
 import com.example.tictactoe.ui.components.DailyChallengeBanner
-import com.example.tictactoe.ui.components.ProgressStrip
 import com.example.tictactoe.ui.components.GlassPanel
 import com.example.tictactoe.ui.components.ModeSelector
+import com.example.tictactoe.ui.components.ProgressStrip
 import com.example.tictactoe.ui.components.Scoreboard
 import com.example.tictactoe.ui.components.StatusBanner
 import com.example.tictactoe.ui.theme.LocalGameColors
@@ -57,6 +58,16 @@ import kotlinx.datetime.LocalDate
 
 private val WideBreakpoint = 720.dp
 private val MaxBoardSize = 620.dp
+
+private val CompactGutter = 16.dp
+private val CompactMaxWidth = 520.dp
+private val CompactSpacing = 10.dp
+
+/** Padding, borders and gaps above the board in [CompactLayout] (independent of text size). */
+private val CompactFixedHeight = 135.dp
+
+/** Line heights of the text above the board in [CompactLayout] at font scale 1 (title, strip, banner, scores, status). */
+private val CompactTextHeight = 160.dp
 
 /** Plain, previewable screen: immutable state in, intents out. Adapts between a stacked and a side-by-side layout. */
 @Composable
@@ -83,26 +94,48 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
             if (maxWidth >= WideBreakpoint && maxWidth > maxHeight) {
                 WideLayout(ui, onIntent, boardModifier)
             } else {
-                CompactLayout(ui, onIntent, boardModifier)
+                val boardSize = minOf(maxWidth - CompactGutter * 2, CompactMaxWidth)
+                val fontScale = LocalDensity.current.fontScale
+                // Rough height of everything stacked above the board: fixed padding plus text that grows with the font scale.
+                val aboveBoard = CompactFixedHeight + CompactTextHeight * fontScale
+                CompactLayout(ui, onIntent, boardModifier, boardFirst = boardSize + aboveBoard > maxHeight)
             }
         }
         Confetti(confettiTrigger, listOf(colors.x, colors.o, colors.glowA, colors.glowB, colors.onSurface), Modifier.fillMaxSize())
     }
 }
 
+/**
+ * Phone layout. At the default text size everything above the board is a few slim rows, so the whole
+ * board is on screen on a 667pt phone. When the text is too large for that, [boardFirst] moves the
+ * board to the top (the title is dropped) and the rest follows below it.
+ */
 @Composable
-private fun CompactLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: Modifier) {
+private fun CompactLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: Modifier, boardFirst: Boolean) {
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = CompactGutter, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Column(Modifier.widthIn(max = 520.dp), verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Header()
-            ProgressSection(ui, onIntent)
-            Scoreboard(ui)
-            StatusBanner(ui)
-            Board(ui.game, enabled = !ui.isComputerTurn, onCellClick = { onIntent(Intent.CellTapped(it)) }, modifier = boardModifier.fillMaxWidth())
+        Column(
+            Modifier.widthIn(max = CompactMaxWidth),
+            verticalArrangement = Arrangement.spacedBy(CompactSpacing),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val board = @Composable {
+                Board(ui.game, enabled = !ui.isComputerTurn, onCellClick = { onIntent(Intent.CellTapped(it)) }, modifier = boardModifier.fillMaxWidth())
+            }
+            if (boardFirst) {
+                StatusBanner(ui)
+                board()
+                Scoreboard(ui)
+                ProgressSection(ui, onIntent)
+            } else {
+                Header(compact = true)
+                ProgressSection(ui, onIntent)
+                Scoreboard(ui)
+                StatusBanner(ui)
+                board()
+            }
             GlassPanel(Modifier.fillMaxWidth()) {
                 if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
                 ActionButtons(ui, onIntent)
@@ -147,24 +180,25 @@ private fun WideLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: M
 @Composable
 private fun ProgressSection(ui: UiState, onIntent: (Intent) -> Unit) {
     if (ui.inChallenge) return
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(CompactSpacing)) {
         ProgressStrip(ui)
         DailyChallengeBanner(ui, onIntent)
     }
 }
 
+/** Title. [compact] drops the tagline and uses a smaller style to leave room for the board on phones. */
 @Composable
-private fun Header(modifier: Modifier = Modifier) {
+private fun Header(modifier: Modifier = Modifier, compact: Boolean = false) {
     val colors = LocalGameColors.current
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Tic Tac Toe",
-            style = MaterialTheme.typography.displaySmall.copy(
+            style = (if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displaySmall).copy(
                 fontWeight = FontWeight.ExtraBold,
                 brush = Brush.linearGradient(listOf(colors.x, colors.o)),
             ),
         )
-        Text("Three in a row wins", style = MaterialTheme.typography.bodyMedium, color = colors.muted)
+        if (!compact) Text("Three in a row wins", style = MaterialTheme.typography.bodyMedium, color = colors.muted)
     }
 }
 

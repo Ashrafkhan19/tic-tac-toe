@@ -64,7 +64,7 @@ fun StatusBanner(ui: UiState, modifier: Modifier = Modifier) {
             .clip(shape)
             .background(animatedTint.copy(alpha = 0.14f))
             .border(1.dp, animatedTint.copy(alpha = 0.5f), shape)
-            .padding(horizontal = 20.dp, vertical = 10.dp),
+            .padding(horizontal = 20.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AnimatedContent(
