@@ -2,6 +2,9 @@
 .kotlin
 .gradle
 **/build/
+*.aab
+*.apk
+release/
 xcuserdata
 !src/**/build/
 local.properties
@@ -17,3 +20,17 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# Signing & Key Store files
+*.jks
+*.keystore
+*.p12
+
+# Google Play & Cloud Service Account credentials
+*service-account*.json
+*play-account*.json
+*play-key*.json
+
+bin/
+
+
