@@ -7,6 +7,7 @@ import com.example.tictactoe.domain.model.Outcome
 import com.example.tictactoe.domain.player.ComputerPlayer
 import com.example.tictactoe.domain.player.DefaultComputerPlayerProvider
 import com.example.tictactoe.domain.player.MinimaxPlayer
+import com.example.tictactoe.domain.player.MistakeProneComputerPlayer
 import com.example.tictactoe.domain.player.MixedPlayer
 import com.example.tictactoe.domain.player.RandomPlayer
 import kotlin.random.Random
@@ -14,6 +15,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNotSame
 
 class PlayersTest {
     private fun play(vararg moves: Int) = moves.fold(GameState()) { s, m -> s.play(m) }
@@ -80,5 +82,37 @@ class PlayersTest {
         }
         val provider = DefaultComputerPlayerProvider()
         Difficulty.entries.forEach { provider.playerFor(it) }
+    }
+
+    private class FixedRandom(private val value: Int) : Random() {
+        override fun nextBits(bitCount: Int): Int = 0
+        override fun nextInt(until: Int): Int = value
+    }
+
+    @Test
+    fun mistakeProneUsesWeakWhenRandomHitsZero() {
+        val player = MistakeProneComputerPlayer(ComputerPlayer { 100 }, ComputerPlayer { 200 }, mistakeOneIn = 4, random = FixedRandom(0))
+        assertEquals(200, player.chooseMove(GameState()))
+    }
+
+    @Test
+    fun mistakeProneUsesStrongOtherwise() {
+        val player = MistakeProneComputerPlayer(ComputerPlayer { 100 }, ComputerPlayer { 200 }, mistakeOneIn = 4, random = FixedRandom(1))
+        assertEquals(100, player.chooseMove(GameState()))
+    }
+
+    @Test
+    fun mistakeOneInBelowOneRejected() {
+        assertFailsWith<IllegalArgumentException> {
+            MistakeProneComputerPlayer(MinimaxPlayer(), RandomPlayer(), mistakeOneIn = 0)
+        }
+    }
+
+    @Test
+    fun providerHasPlayerForMedium() {
+        val provider = DefaultComputerPlayerProvider()
+        val medium = provider.playerFor(Difficulty.Medium)
+        assertNotSame(provider.playerFor(Difficulty.Unbeatable), medium)
+        assertNotSame(provider.playerFor(Difficulty.Easy), medium)
     }
 }

@@ -61,7 +61,7 @@ fun ModeSelector(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = M
             exit = shrinkVertically() + fadeOut(),
         ) {
             Segmented(
-                options = listOf("Easy" to Difficulty.Easy, "Unbeatable" to Difficulty.Unbeatable),
+                options = listOf("Easy" to Difficulty.Easy, "Medium" to Difficulty.Medium, "Unbeatable" to Difficulty.Unbeatable),
                 selected = ui.difficulty,
                 onSelect = { onIntent(Intent.DifficultySelected(it)) },
             )

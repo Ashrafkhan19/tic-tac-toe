@@ -49,6 +49,21 @@ class MixedPlayer(
         if (random.nextInt(strongOneIn) == 0) strong.chooseMove(game) else weak.chooseMove(game)
 }
 
+/** Uses [weak] one time in [mistakeOneIn], otherwise [strong]. */
+class MistakeProneComputerPlayer(
+    private val strong: ComputerPlayer,
+    private val weak: ComputerPlayer,
+    private val mistakeOneIn: Int,
+    private val random: Random = Random,
+) : ComputerPlayer {
+    init {
+        require(mistakeOneIn >= 1) { "mistakeOneIn must be at least 1" }
+    }
+
+    override fun chooseMove(game: GameState): Int =
+        if (random.nextInt(mistakeOneIn) == 0) weak.chooseMove(game) else strong.chooseMove(game)
+}
+
 /**
  * Default difficulty table. New difficulties are added by registering a player;
  * callers keep depending on [ComputerPlayerProvider] only.
@@ -67,6 +82,7 @@ class DefaultComputerPlayerProvider(
             val perfect = MinimaxPlayer()
             return mapOf(
                 Difficulty.Easy to MixedPlayer(strong = perfect, weak = RandomPlayer(), strongOneIn = 4),
+                Difficulty.Medium to MistakeProneComputerPlayer(perfect, RandomPlayer(), mistakeOneIn = 4),
                 Difficulty.Unbeatable to perfect,
             )
         }

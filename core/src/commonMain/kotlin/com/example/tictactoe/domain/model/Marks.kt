@@ -8,4 +8,4 @@ enum class Mark {
 
 enum class Mode { TwoPlayer, VsComputer }
 
-enum class Difficulty { Easy, Unbeatable }
+enum class Difficulty { Easy, Medium, Unbeatable }
