@@ -72,6 +72,10 @@ Apple Developer and Google Play developer accounts, an ad network account and ad
 
 Persistence library, the exact seeded-generation algorithm, screen layouts and navigation, XP and level curves, theme palettes, notification default time, event naming, and the choice of ad, purchase, and analytics SDKs (any that work in a Kotlin Multiplatform project).
 
+## Release gate (owner's decision)
+
+The first public release waits until analytics and rewarded ads / the purchase are in, so retention is measured from day one. Development still proceeds in the order below using the fake implementations. The owner's store, ad, and analytics accounts are therefore a hard dependency for release, not just for the last step.
+
 ## Suggested order
 
 1 saved progress, 2 daily challenge and streak (with home screen), 3 XP, themes, Medium difficulty, 4 share and local notification, then analytics, then ads and purchase. Each step leaves the app working and shippable.
