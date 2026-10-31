@@ -1,8 +1,15 @@
 package com.example.tictactoe.domain.usecase
 
+import com.example.tictactoe.domain.model.Mark
 import com.example.tictactoe.domain.model.Match
 import com.example.tictactoe.domain.model.MatchSettings
+import com.example.tictactoe.domain.model.Mode
+import com.example.tictactoe.domain.model.Outcome
 import com.example.tictactoe.domain.player.ComputerPlayerProvider
+import com.example.tictactoe.domain.progress.DifficultyStats
+import com.example.tictactoe.domain.progress.GameResult
+import com.example.tictactoe.domain.progress.PlayerProgress
+import com.example.tictactoe.domain.progress.XpRules
 
 /** A human taps a cell. Ignored while it is the computer's turn. */
 class PlayHumanMove {
@@ -32,4 +39,21 @@ class ChangeSettings {
 
 class ResetScores {
     operator fun invoke(match: Match): Match = match.withSettings(match.settings)
+}
+
+/** Folds a finished vs-Computer game into the player's progress. The human is X. */
+class RecordGameResult {
+    operator fun invoke(progress: PlayerProgress, settings: MatchSettings, outcome: Outcome): PlayerProgress {
+        if (settings.mode != Mode.VsComputer) return progress
+        val result = when (outcome) {
+            Outcome.InProgress -> return progress
+            Outcome.Draw -> GameResult.Draw
+            is Outcome.Won -> if (outcome.winner == Mark.X) GameResult.Win else GameResult.Loss
+        }
+        val stats = progress.stats[settings.difficulty] ?: DifficultyStats()
+        return progress.copy(
+            xp = progress.xp + XpRules.forGame(settings.difficulty, result),
+            stats = progress.stats + (settings.difficulty to stats.record(result)),
+        )
+    }
 }
