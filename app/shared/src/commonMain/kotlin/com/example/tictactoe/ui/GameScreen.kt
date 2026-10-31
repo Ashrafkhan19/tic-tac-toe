@@ -28,17 +28,25 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
+import com.example.tictactoe.domain.model.Difficulty
 import com.example.tictactoe.domain.model.GameState
 import com.example.tictactoe.domain.model.Mark
 import com.example.tictactoe.domain.model.Match
+import com.example.tictactoe.domain.model.MatchSettings
 import com.example.tictactoe.domain.model.Mode
 import com.example.tictactoe.domain.model.Outcome
+import com.example.tictactoe.domain.progress.PlayerProgress
+import com.example.tictactoe.domain.progress.StreakState
 import com.example.tictactoe.presentation.Intent
 import com.example.tictactoe.presentation.UiState
 import com.example.tictactoe.ui.components.ActionButtons
 import com.example.tictactoe.ui.components.AnimatedBackground
 import com.example.tictactoe.ui.components.Board
+import com.example.tictactoe.ui.components.ChallengeHeader
 import com.example.tictactoe.ui.components.Confetti
+import com.example.tictactoe.ui.components.DailyChallengeBanner
+import com.example.tictactoe.ui.components.ProgressStrip
 import com.example.tictactoe.ui.components.GlassPanel
 import com.example.tictactoe.ui.components.ModeSelector
 import com.example.tictactoe.ui.components.Scoreboard
@@ -91,11 +99,12 @@ private fun CompactLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier
     ) {
         Column(Modifier.widthIn(max = 520.dp), verticalArrangement = Arrangement.spacedBy(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Header()
+            ProgressSection(ui, onIntent)
             Scoreboard(ui)
             StatusBanner(ui)
             Board(ui.game, enabled = !ui.isComputerTurn, onCellClick = { onIntent(Intent.CellTapped(it)) }, modifier = boardModifier.fillMaxWidth())
             GlassPanel(Modifier.fillMaxWidth()) {
-                ModeSelector(ui, onIntent)
+                if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
                 ActionButtons(ui, onIntent)
             }
         }
@@ -123,13 +132,24 @@ private fun WideLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: M
             verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
         ) {
             Header()
+            ProgressSection(ui, onIntent)
             StatusBanner(ui)
             Scoreboard(ui)
             GlassPanel(Modifier.fillMaxWidth()) {
-                ModeSelector(ui, onIntent)
+                if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
                 ActionButtons(ui, onIntent)
             }
         }
+    }
+}
+
+/** Streak/XP strip and daily-challenge entry. Hidden inside a challenge, where `today` may be stale and urgency would mislead. */
+@Composable
+private fun ProgressSection(ui: UiState, onIntent: (Intent) -> Unit) {
+    if (ui.inChallenge) return
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ProgressStrip(ui)
+        DailyChallengeBanner(ui, onIntent)
     }
 }
 
@@ -148,12 +168,63 @@ private fun Header(modifier: Modifier = Modifier) {
     }
 }
 
+private val PreviewDay = LocalDate(2026, 11, 2)
+private val PreviewChallenge = DailyChallengeGenerator().forDate(PreviewDay)
+private val PreviewGame = Match(game = GameState().play(4).play(0).play(8))
+
 @Preview
 @Composable
 private fun GameContentPreview() {
-    TicTacToeTheme() {
+    TicTacToeTheme {
+        GameContent(UiState(PreviewGame, today = PreviewDay), onIntent = {})
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 780)
+@Composable
+private fun PhoneAtRiskPreview() {
+    TicTacToeTheme {
         GameContent(
-            UiState(Match(game = GameState().play(4).play(0).play(8)), today = LocalDate(2026, 11, 2)),
+            UiState(
+                PreviewGame, today = PreviewDay, todayChallenge = PreviewChallenge,
+                progress = PlayerProgress(xp = 230, streak = StreakState(current = 5, best = 5, lastCompleted = LocalDate(2026, 11, 1))),
+            ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(widthDp = 800, heightDp = 1180)
+@Composable
+private fun TabletPortraitDonePreview() {
+    TicTacToeTheme {
+        GameContent(
+            UiState(
+                PreviewGame, today = PreviewDay, todayChallenge = PreviewChallenge,
+                progress = PlayerProgress(xp = 340, streak = StreakState(current = 6, best = 6, lastCompleted = PreviewDay)),
+            ),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(widthDp = 1180, heightDp = 800)
+@Composable
+private fun TabletLandscapeLoadingPreview() {
+    TicTacToeTheme {
+        GameContent(UiState(PreviewGame, today = PreviewDay, todayChallenge = null), onIntent = {})
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 780)
+@Composable
+private fun InChallengePreview() {
+    TicTacToeTheme {
+        GameContent(
+            UiState(
+                Match(MatchSettings(Mode.VsComputer, Difficulty.Unbeatable), game = PreviewChallenge.game),
+                today = PreviewDay, todayChallenge = PreviewChallenge, inChallenge = true,
+            ),
             onIntent = {},
         )
     }

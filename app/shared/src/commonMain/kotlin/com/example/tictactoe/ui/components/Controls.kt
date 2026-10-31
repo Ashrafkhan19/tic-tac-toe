@@ -101,7 +101,7 @@ fun ActionButtons(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = 
                 scaleX = s
                 scaleY = s
             },
-        ) { Text("New round") }
+        ) { Text(if (ui.inChallenge) "Retry" else "New round") }
         OutlinedButton(onClick = { onIntent(Intent.ResetScores) }, modifier = Modifier.weight(1f)) { Text("Reset scores") }
     }
 }
