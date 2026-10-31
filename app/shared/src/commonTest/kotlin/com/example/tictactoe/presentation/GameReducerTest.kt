@@ -1,23 +1,39 @@
 package com.example.tictactoe.presentation
 
+import com.example.tictactoe.domain.challenge.DailyChallenge
+import com.example.tictactoe.domain.model.Board
 import com.example.tictactoe.domain.model.Difficulty
+import com.example.tictactoe.domain.model.GameState
 import com.example.tictactoe.domain.model.Mark
 import com.example.tictactoe.domain.model.Match
 import com.example.tictactoe.domain.model.MatchSettings
 import com.example.tictactoe.domain.model.Mode
+import com.example.tictactoe.domain.progress.PlayerProgress
 import com.example.tictactoe.domain.usecase.ApplyComputerMove
 import com.example.tictactoe.domain.usecase.ChangeSettings
 import com.example.tictactoe.domain.usecase.PlayHumanMove
 import com.example.tictactoe.domain.usecase.ResetScores
 import com.example.tictactoe.domain.usecase.StartNextRound
+import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class GameReducerTest {
     private val reducer = GameReducer(PlayHumanMove(), ApplyComputerMove(), StartNextRound(), ChangeSettings(), ResetScores())
-    private val twoPlayer = UiState(Match(settings = MatchSettings(mode = Mode.TwoPlayer)))
+    private val day = LocalDate(2026, 11, 2)
+    private val twoPlayer = UiState(Match(settings = MatchSettings(mode = Mode.TwoPlayer)), today = day)
     private fun run(start: UiState, vararg intents: Intent) = intents.fold(start) { s, i -> reducer.reduce(s, i) }
     private fun taps(vararg cells: Int) = cells.map { Intent.CellTapped(it) }.toTypedArray<Intent>()
+
+    /** X to move at 0, 1 to complete the top row after 2. */
+    private val challenge = DailyChallenge(
+        date = day,
+        game = GameState(Board(listOf(Mark.X, Mark.X, null, Mark.O, Mark.O, null, null, null, null)), Mark.X),
+        movesToWin = 1,
+    )
+    private val withChallenge = UiState(today = day, todayChallenge = challenge)
 
     @Test
     fun tapPlacesMarkAndPassesTurn() {
@@ -33,7 +49,7 @@ class GameReducerTest {
 
     @Test
     fun computerReplyIsAppliedOnlyOnItsTurn() {
-        val afterHuman = run(UiState(), Intent.CellTapped(0))
+        val afterHuman = run(UiState(today = day), Intent.CellTapped(0))
         assertEquals(true, afterHuman.isComputerTurn)
         val afterComputer = reducer.reduce(afterHuman, Intent.ComputerPlayed(4))
         assertEquals(Mark.O, afterComputer.game.board.cells[4])
@@ -54,5 +70,49 @@ class GameReducerTest {
         val won = run(twoPlayer, *taps(0, 3, 1, 4, 2))
         assertEquals(1, reducer.reduce(won, Intent.NewRound).xWins)
         assertEquals(0, reducer.reduce(won, Intent.ResetScores).xWins)
+    }
+
+    @Test
+    fun reducerKeepsNonMatchFieldsWhenPlaying() {
+        val start = twoPlayer.copy(progress = PlayerProgress(xp = 77), todayChallenge = challenge)
+        val s = run(start, *taps(0, 3, 1, 4, 2), Intent.NewRound, Intent.ResetScores)
+        assertEquals(77, s.progress.xp)
+        assertEquals(day, s.today)
+        assertEquals(challenge, s.todayChallenge)
+    }
+
+    @Test
+    fun startDailyChallengeIsIgnoredUntilTheChallengeIsLoaded() {
+        val loading = UiState(today = day)
+        assertEquals(loading, reducer.reduce(loading, Intent.StartDailyChallenge))
+    }
+
+    @Test
+    fun startDailyChallengeLoadsThePresetBoardAgainstUnbeatable() {
+        val s = run(withChallenge, Intent.DifficultySelected(Difficulty.Easy), Intent.StartDailyChallenge)
+        assertTrue(s.inChallenge)
+        assertEquals(MatchSettings(Mode.VsComputer, Difficulty.Unbeatable), s.match.settings)
+        assertEquals(challenge.game, s.game)
+    }
+
+    @Test
+    fun settingsAreIgnoredAndNewRoundRestartsThePositionDuringAChallenge() {
+        val started = run(withChallenge, Intent.StartDailyChallenge, Intent.CellTapped(5))
+        val s = run(started, Intent.ModeSelected(Mode.TwoPlayer), Intent.DifficultySelected(Difficulty.Easy))
+        assertEquals(started, s)
+        val restarted = reducer.reduce(s, Intent.NewRound)
+        assertEquals(challenge.game, restarted.game)
+        assertTrue(restarted.inChallenge)
+        val reset = reducer.reduce(s, Intent.ResetScores)
+        assertEquals(challenge.game, reset.game)
+        assertTrue(reset.inChallenge)
+    }
+
+    @Test
+    fun leaveDailyChallengeReturnsToFreshFreePlay() {
+        val s = run(withChallenge, Intent.StartDailyChallenge, Intent.CellTapped(5), Intent.LeaveDailyChallenge)
+        assertFalse(s.inChallenge)
+        assertEquals(Match(), s.match)
+        assertEquals(challenge, s.todayChallenge)
     }
 }

@@ -45,6 +45,7 @@ import com.example.tictactoe.ui.components.Scoreboard
 import com.example.tictactoe.ui.components.StatusBanner
 import com.example.tictactoe.ui.theme.LocalGameColors
 import com.example.tictactoe.ui.theme.TicTacToeTheme
+import kotlinx.datetime.LocalDate
 
 private val WideBreakpoint = 720.dp
 private val MaxBoardSize = 620.dp
@@ -151,6 +152,9 @@ private fun Header(modifier: Modifier = Modifier) {
 @Composable
 private fun GameContentPreview() {
     TicTacToeTheme() {
-        GameContent(UiState(Match(game = GameState().play(4).play(0).play(8))), onIntent = {})
+        GameContent(
+            UiState(Match(game = GameState().play(4).play(0).play(8)), today = LocalDate(2026, 11, 2)),
+            onIntent = {},
+        )
     }
 }
