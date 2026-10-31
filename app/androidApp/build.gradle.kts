@@ -27,9 +27,33 @@ android {
         applicationId = "studio.gameloop.tictactoe"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = if (project.hasProperty("versionCode")) {
+            (project.findProperty("versionCode") as String).toInt()
+        } else {
+            1
+        }
+        versionName = if (project.hasProperty("versionName")) {
+            project.findProperty("versionName") as String
+        } else {
+            "1.0"
+        }
     }
+    val envKeystorePath = System.getenv("KEYSTORE_PATH")
+    val envKeystorePassword = System.getenv("KEYSTORE_PASSWORD")
+    val envKeyAlias = System.getenv("KEY_ALIAS")
+    val envKeyPassword = System.getenv("KEY_PASSWORD")
+
+    signingConfigs {
+        if (!envKeystorePath.isNullOrBlank() && file(envKeystorePath).exists()) {
+            create("release") {
+                storeFile = file(envKeystorePath)
+                storePassword = envKeystorePassword
+                keyAlias = envKeyAlias
+                keyPassword = envKeyPassword
+            }
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -38,6 +62,9 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (signingConfigs.findByName("release") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
