@@ -28,3 +28,6 @@ node_modules/
 *play-account*.json
 *play-key*.json
 
+bin/
+
+
