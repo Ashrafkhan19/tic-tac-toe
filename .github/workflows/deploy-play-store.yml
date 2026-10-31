@@ -20,6 +20,13 @@ on:
         required: false
         type: string
 
+concurrency:
+  group: deploy-play-store
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest

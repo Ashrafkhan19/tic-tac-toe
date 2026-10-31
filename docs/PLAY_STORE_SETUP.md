@@ -94,12 +94,14 @@ Build the signed release bundle locally on your machine to satisfy the "Golden R
 From the root of the project, run:
 
 ```bash
-KEYSTORE_PATH="./tictactoe-upload-key.jks" \
+KEYSTORE_PATH="$PWD/tictactoe-upload-key.jks" \
 KEYSTORE_PASSWORD="<your-keystore-password>" \
 KEY_ALIAS="tictactoe" \
 KEY_PASSWORD="<your-key-password>" \
 ./gradlew :app:androidApp:bundleRelease
 ```
+
+> **Note:** Gradle resolves both absolute paths (such as `$PWD/tictactoe-upload-key.jks`) and root-project-relative paths automatically.
 
 The resulting bundle will be located at:
 ```
@@ -146,6 +148,8 @@ To allow GitHub Actions to deploy releases automatically, you must create a Goog
 3. Click **Add Key** -> **Create new key**.
 4. Select **JSON** and click **Create**.
 5. Save the downloaded `.json` file securely (e.g. `service-account-key.json`).
+
+> **Recommended:** Store downloaded credentials in a secure folder outside the workspace (such as `~/.credentials/`) to prevent accidental staging.
 
 ### 4. Enable the Google Play Android Developer API
 1. In Google Cloud Console, go to **APIs & Services** -> **Library**.

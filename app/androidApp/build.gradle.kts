@@ -27,26 +27,22 @@ android {
         applicationId = "studio.gameloop.tictactoe"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = if (project.hasProperty("versionCode")) {
-            (project.findProperty("versionCode") as String).toInt()
-        } else {
-            1
-        }
-        versionName = if (project.hasProperty("versionName")) {
-            project.findProperty("versionName") as String
-        } else {
-            "1.0"
-        }
+        versionCode = project.findProperty("versionCode")?.toString()?.toIntOrNull() ?: 1
+        versionName = project.findProperty("versionName")?.toString() ?: "1.0"
     }
     val envKeystorePath = System.getenv("KEYSTORE_PATH")
+    val keystoreFile = envKeystorePath?.takeIf { it.isNotBlank() }?.let { path ->
+        val candidate = file(path)
+        if (candidate.exists()) candidate else rootProject.file(path)
+    }
     val envKeystorePassword = System.getenv("KEYSTORE_PASSWORD")
     val envKeyAlias = System.getenv("KEY_ALIAS")
     val envKeyPassword = System.getenv("KEY_PASSWORD")
 
     signingConfigs {
-        if (!envKeystorePath.isNullOrBlank() && file(envKeystorePath).exists()) {
+        if (keystoreFile != null && keystoreFile.exists()) {
             create("release") {
-                storeFile = file(envKeystorePath)
+                storeFile = keystoreFile
                 storePassword = envKeystorePassword
                 keyAlias = envKeyAlias
                 keyPassword = envKeyPassword
