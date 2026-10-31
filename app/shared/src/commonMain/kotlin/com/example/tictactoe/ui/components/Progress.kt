@@ -189,7 +189,7 @@ fun ChallengeHeader(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier 
 }
 
 private val PreviewDay = LocalDate(2026, 11, 2)
-private val PreviewChallenge = DailyChallengeGenerator().forDate(PreviewDay)
+private fun previewChallenge() = DailyChallengeGenerator().forDate(PreviewDay)
 
 @Composable
 private fun PreviewColumn(ui: UiState) {
@@ -204,14 +204,14 @@ private fun PreviewColumn(ui: UiState) {
 
 @Preview
 @Composable
-private fun NewPlayerPreview() = PreviewColumn(UiState(today = PreviewDay, todayChallenge = PreviewChallenge))
+private fun NewPlayerPreview() = PreviewColumn(UiState(today = PreviewDay, todayChallenge = previewChallenge()))
 
 @Preview
 @Composable
 private fun MidStreakAtRiskPreview() = PreviewColumn(
     UiState(
         today = PreviewDay,
-        todayChallenge = PreviewChallenge,
+        todayChallenge = previewChallenge(),
         progress = PlayerProgress(xp = 230, streak = StreakState(current = 5, best = 5, lastCompleted = LocalDate(2026, 11, 1))),
     ),
 )
@@ -221,7 +221,7 @@ private fun MidStreakAtRiskPreview() = PreviewColumn(
 private fun ChallengeDonePreview() = PreviewColumn(
     UiState(
         today = PreviewDay,
-        todayChallenge = PreviewChallenge,
+        todayChallenge = previewChallenge(),
         progress = PlayerProgress(xp = 340, streak = StreakState(current = 6, best = 6, lastCompleted = PreviewDay)),
     ),
 )

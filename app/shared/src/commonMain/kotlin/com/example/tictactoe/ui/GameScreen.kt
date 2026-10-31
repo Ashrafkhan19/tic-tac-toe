@@ -169,14 +169,14 @@ private fun Header(modifier: Modifier = Modifier) {
 }
 
 private val PreviewDay = LocalDate(2026, 11, 2)
-private val PreviewChallenge = DailyChallengeGenerator().forDate(PreviewDay)
-private val PreviewGame = Match(game = GameState().play(4).play(0).play(8))
+private fun previewChallenge() = DailyChallengeGenerator().forDate(PreviewDay)
+private fun previewGame() = Match(game = GameState().play(4).play(0).play(8))
 
 @Preview
 @Composable
 private fun GameContentPreview() {
     TicTacToeTheme {
-        GameContent(UiState(PreviewGame, today = PreviewDay), onIntent = {})
+        GameContent(UiState(previewGame(), today = PreviewDay), onIntent = {})
     }
 }
 
@@ -186,7 +186,7 @@ private fun PhoneAtRiskPreview() {
     TicTacToeTheme {
         GameContent(
             UiState(
-                PreviewGame, today = PreviewDay, todayChallenge = PreviewChallenge,
+                previewGame(), today = PreviewDay, todayChallenge = previewChallenge(),
                 progress = PlayerProgress(xp = 230, streak = StreakState(current = 5, best = 5, lastCompleted = LocalDate(2026, 11, 1))),
             ),
             onIntent = {},
@@ -200,7 +200,7 @@ private fun TabletPortraitDonePreview() {
     TicTacToeTheme {
         GameContent(
             UiState(
-                PreviewGame, today = PreviewDay, todayChallenge = PreviewChallenge,
+                previewGame(), today = PreviewDay, todayChallenge = previewChallenge(),
                 progress = PlayerProgress(xp = 340, streak = StreakState(current = 6, best = 6, lastCompleted = PreviewDay)),
             ),
             onIntent = {},
@@ -212,7 +212,7 @@ private fun TabletPortraitDonePreview() {
 @Composable
 private fun TabletLandscapeLoadingPreview() {
     TicTacToeTheme {
-        GameContent(UiState(PreviewGame, today = PreviewDay, todayChallenge = null), onIntent = {})
+        GameContent(UiState(previewGame(), today = PreviewDay, todayChallenge = null), onIntent = {})
     }
 }
 
@@ -222,8 +222,8 @@ private fun InChallengePreview() {
     TicTacToeTheme {
         GameContent(
             UiState(
-                Match(MatchSettings(Mode.VsComputer, Difficulty.Unbeatable), game = PreviewChallenge.game),
-                today = PreviewDay, todayChallenge = PreviewChallenge, inChallenge = true,
+                Match(MatchSettings(Mode.VsComputer, Difficulty.Unbeatable), game = previewChallenge().game),
+                today = PreviewDay, todayChallenge = previewChallenge(), inChallenge = true,
             ),
             onIntent = {},
         )
