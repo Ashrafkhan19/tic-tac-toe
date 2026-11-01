@@ -117,7 +117,9 @@ class GameReducer(
         val match = state.match
         val challenge = state.todayChallenge.takeIf { state.inChallenge }
         return when (intent) {
-            is Intent.CellTapped -> state.copy(match = playHumanMove(match, intent.index))
+            is Intent.CellTapped ->
+                if (state.variant == GameVariant.CLASSIC_3X3) state.copy(match = playHumanMove(match, intent.index))
+                else state
             is Intent.ComputerPlayed -> state.copy(match = applyComputerMove(match, intent.index))
             is Intent.ModeSelected ->
                 if (state.inChallenge) state

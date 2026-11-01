@@ -135,18 +135,11 @@ class GameViewModel(
 
     private fun progressAfterRound(state: UiState): PlayerProgress {
         val outcome = state.currentOutcome
-        if (state.inChallenge) {
-            val challenge = state.todayChallenge ?: return state.progress
-            val xWon = outcome is Outcome.Won && outcome.winner == Mark.X
-            return if (xWon) completeDailyChallenge(state.progress, challenge.date) else state.progress
-        }
-        if (state.mode != Mode.VsComputer) return state.progress
-        val result = when (outcome) {
-            Outcome.InProgress -> return state.progress
-            Outcome.Draw -> GameResult.Draw
-            is Outcome.Won -> if (outcome.winner == Mark.X) GameResult.Win else GameResult.Loss
-        }
-        return state.progress.recordGame(state.variant, state.difficulty, result)
+        if (!state.inChallenge) return recordGameResult(state.progress, state.match.settings, outcome)
+        val challenge = state.todayChallenge ?: return state.progress
+        val xWon = outcome is Outcome.Won && outcome.winner == Mark.X
+        // Credited to the challenge's own date, not the clock at finish time.
+        return if (xWon) completeDailyChallenge(state.progress, challenge.date) else state.progress
     }
 
     private fun refreshDate() {

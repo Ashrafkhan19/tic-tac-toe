@@ -279,4 +279,19 @@ class GameViewModelVariantTest {
         assertEquals(16, vm.state.value.gridBoard?.emptyCells?.size)
         assertEquals(0, vm.state.value.xWins)
     }
+
+    @Test
+    fun cellTappedIsIgnoredWhenVariantIsNotClassic3x3() = runTest {
+        val repo = InMemoryProgressRepository()
+        val vm = GameViewModel(progressRepository = repo, todayProvider = fixedToday, computerDispatcher = testDispatcher)
+
+        vm.send(Intent.SelectVariant(GameVariant.GRID_4X4))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.send(Intent.CellTapped(0))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertNull(vm.state.value.game.board.cells[0])
+        assertEquals(16, vm.state.value.gridBoard?.emptyCells?.size)
+    }
 }
