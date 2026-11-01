@@ -31,6 +31,11 @@ data class PlayerProgress(
     val xp: Int = 0,
     val variantStats: Map<String, DifficultyStats> = emptyMap(),
     val streak: StreakState = StreakState(),
+    val totalFocusMinutes: Int = 0,
+    val urgesSurfedCount: Int = 0,
+    val circuitsCompletedCount: Int = 0,
+    val sleepLogsCount: Int = 0,
+    val movementLogsCount: Int = 0,
 ) {
     /** Backwards-compatibility computed view of classic 3x3 stats. */
     val stats: Map<Difficulty, DifficultyStats>

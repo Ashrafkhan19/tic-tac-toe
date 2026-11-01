@@ -69,11 +69,21 @@ class SettingsProgressRepository(
                 o.containsKey("stats") -> stats(o["stats"]).mapKeys { "${GameVariant.CLASSIC_3X3.name}:${it.key.name}" }
                 else -> emptyMap()
             }
+            val totalFocusMinutes = int(o, "totalFocusMinutes") ?: defaults.totalFocusMinutes
+            val urgesSurfedCount = int(o, "urgesSurfedCount") ?: defaults.urgesSurfedCount
+            val circuitsCompletedCount = int(o, "circuitsCompletedCount") ?: defaults.circuitsCompletedCount
+            val sleepLogsCount = int(o, "sleepLogsCount") ?: defaults.sleepLogsCount
+            val movementLogsCount = int(o, "movementLogsCount") ?: defaults.movementLogsCount
             return PlayerProgress(
                 version = version,
                 xp = xp,
                 variantStats = variantStats,
                 streak = streak,
+                totalFocusMinutes = totalFocusMinutes,
+                urgesSurfedCount = urgesSurfedCount,
+                circuitsCompletedCount = circuitsCompletedCount,
+                sleepLogsCount = sleepLogsCount,
+                movementLogsCount = movementLogsCount,
             )
         }
 
