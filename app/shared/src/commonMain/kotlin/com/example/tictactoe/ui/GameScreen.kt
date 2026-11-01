@@ -82,6 +82,19 @@ private val CompactFixedHeight = 135.dp
 /** Line heights of the text above the board in [CompactLayout] at font scale 1 (title, strip, banner, scores, status). */
 private val CompactTextHeight = 160.dp
 
+internal fun createAdInterceptingIntentHandler(
+    adsManager: AdsManager,
+    onIntent: (Intent) -> Unit,
+): (Intent) -> Unit = { intent ->
+    if (intent is Intent.NewRound) {
+        adsManager.showInterstitialIfReady {
+            onIntent(intent)
+        }
+    } else {
+        onIntent(intent)
+    }
+}
+
 /** Plain, previewable screen: immutable state in, intents out. Adapts between a stacked and a side-by-side layout. */
 @Composable
 internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = Modifier) {
@@ -96,14 +109,8 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
         }
     }
 
-    val handleIntentWithAds: (Intent) -> Unit = { intent ->
-        if (intent is Intent.NewRound) {
-            adsManager.showInterstitialIfReady {
-                onIntent(intent)
-            }
-        } else {
-            onIntent(intent)
-        }
+    val handleIntentWithAds = remember(adsManager, onIntent) {
+        createAdInterceptingIntentHandler(adsManager, onIntent)
     }
 
     var showVariantPicker by remember { mutableStateOf(false) }

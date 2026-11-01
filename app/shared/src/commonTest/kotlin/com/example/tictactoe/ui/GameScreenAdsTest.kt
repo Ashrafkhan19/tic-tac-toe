@@ -1,7 +1,6 @@
 package com.example.tictactoe.ui
 
 import com.example.tictactoe.ads.AdsManager
-import com.example.tictactoe.ads.NoOpAdsManager
 import com.example.tictactoe.presentation.Intent
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -48,15 +47,7 @@ class GameScreenAdsTest {
         var intentDispatched: Intent? = null
         val onIntent: (Intent) -> Unit = { intentDispatched = it }
 
-        val handleIntentWithAds: (Intent) -> Unit = { intent ->
-            if (intent is Intent.NewRound) {
-                tracking.showInterstitialIfReady {
-                    onIntent(intent)
-                }
-            } else {
-                onIntent(intent)
-            }
-        }
+        val handleIntentWithAds = createAdInterceptingIntentHandler(tracking, onIntent)
 
         handleIntentWithAds(Intent.NewRound)
         assertEquals(1, tracking.interstitialCalls)
