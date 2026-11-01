@@ -53,7 +53,7 @@ class RecordGameResult {
             Outcome.Draw -> GameResult.Draw
             is Outcome.Won -> if (outcome.winner == Mark.X) GameResult.Win else GameResult.Loss
         }
-        return progress.recordGame(GameVariant.CLASSIC_3X3, settings.difficulty, result)
+        return progress.recordGame(settings.variant, settings.difficulty, result)
     }
 }
 

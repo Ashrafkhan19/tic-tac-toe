@@ -116,7 +116,27 @@ class SettingsProgressRepositoryTest {
         val settings = MapSettings()
         SettingsProgressRepository(settings).save(PlayerProgress())
         val raw = settings.getString(key, "")
-        assertTrue(raw.contains("\"version\":1"), raw)
+        assertTrue(raw.contains("\"version\":2"), raw)
+    }
+
+    @Test
+    fun roundTripsVariantStatsForMultipleVariants() {
+        val settings = MapSettings()
+        val multiVariantProgress = PlayerProgress(
+            version = 2,
+            xp = 150,
+            variantStats = mapOf(
+                "CLASSIC_3X3:Easy" to DifficultyStats(wins = 2),
+                "GRID_4X4:Medium" to DifficultyStats(wins = 5, losses = 1),
+                "ULTIMATE:Unbeatable" to DifficultyStats(wins = 1, draws = 2),
+            ),
+        )
+        val repo = SettingsProgressRepository(settings)
+        repo.save(multiVariantProgress)
+        val loaded = repo.load()
+        assertEquals(multiVariantProgress, loaded)
+        assertEquals(DifficultyStats(wins = 5, losses = 1), loaded.variantStats["GRID_4X4:Medium"])
+        assertEquals(DifficultyStats(wins = 1, draws = 2), loaded.variantStats["ULTIMATE:Unbeatable"])
     }
 
     @Test
