@@ -10,13 +10,19 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -30,13 +36,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.tictactoe.domain.model.Difficulty
+import com.example.tictactoe.domain.model.GameVariant
 import com.example.tictactoe.domain.model.Mode
 import com.example.tictactoe.presentation.Intent
 import com.example.tictactoe.presentation.UiState
@@ -116,7 +125,7 @@ fun ActionButtons(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = 
         animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
         label = "pulse",
     )
-    val roundOver = ui.game.isOver
+    val roundOver = ui.isGameOver
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Button(
             onClick = { onIntent(Intent.NewRound) },
@@ -131,6 +140,55 @@ fun ActionButtons(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = 
         if (!ui.inChallenge) {
             OutlinedButton(onClick = { onIntent(Intent.ResetScores) }, modifier = Modifier.weight(1f)) {
                 Text("Reset scores", textAlign = TextAlign.Center)
+            }
+        }
+    }
+}
+
+@Composable
+fun VariantBadge(
+    variant: GameVariant,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    val colors = LocalGameColors.current
+    val shape = RoundedCornerShape(50)
+    Box(
+        modifier = modifier
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            .clickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClickLabel = "Change variant",
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            modifier = Modifier
+                .clip(shape)
+                .background(colors.panel)
+                .border(
+                    1.dp,
+                    if (enabled) colors.primary.copy(alpha = 0.5f) else colors.panelBorder,
+                    shape,
+                )
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = variant.displayName,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = if (enabled) colors.primary else colors.muted,
+            )
+            if (enabled) {
+                Text(
+                    text = "▾",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.primary,
+                )
             }
         }
     }

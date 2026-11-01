@@ -1,9 +1,12 @@
 package com.example.tictactoe.di
 
+import com.example.tictactoe.ads.AdsManager
+import com.example.tictactoe.ads.NoOpAdsManager
 import com.example.tictactoe.data.SettingsProgressRepository
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.player.ComputerPlayerProvider
 import com.example.tictactoe.domain.player.DefaultComputerPlayerProvider
+import com.example.tictactoe.domain.progress.InMemoryProgressRepository
 import com.example.tictactoe.domain.progress.ProgressRepository
 import com.example.tictactoe.domain.time.SystemTodayProvider
 import com.example.tictactoe.domain.time.TodayProvider
@@ -19,6 +22,12 @@ import com.example.tictactoe.presentation.GameReducer
 import com.example.tictactoe.presentation.GameViewModel
 import com.russhwolf.settings.Settings
 
+private fun defaultProgressRepository(): ProgressRepository = try {
+    SettingsProgressRepository(Settings())
+} catch (t: Throwable) {
+    InMemoryProgressRepository()
+}
+
 /**
  * Composition root: the only place that knows which concrete classes implement the domain
  * interfaces. Swap [computerPlayers] to change how the computer plays, [progressRepository] to
@@ -26,8 +35,9 @@ import com.russhwolf.settings.Settings
  */
 class AppContainer(
     private val computerPlayers: ComputerPlayerProvider = DefaultComputerPlayerProvider(),
-    private val progressRepository: ProgressRepository = SettingsProgressRepository(Settings()),
+    private val progressRepository: ProgressRepository = defaultProgressRepository(),
     private val todayProvider: TodayProvider = SystemTodayProvider(),
+    val adsManager: AdsManager = NoOpAdsManager(),
 ) {
     fun createGameViewModel(): GameViewModel = GameViewModel(
         reducer = GameReducer(

@@ -3,6 +3,7 @@ package com.example.tictactoe.domain.model
 data class MatchSettings(
     val mode: Mode = Mode.VsComputer,
     val difficulty: Difficulty = Difficulty.Unbeatable,
+    val variant: GameVariant = GameVariant.CLASSIC_3X3,
 )
 
 /** A series of rounds: settings, the current round, the running score and who opened this round. */

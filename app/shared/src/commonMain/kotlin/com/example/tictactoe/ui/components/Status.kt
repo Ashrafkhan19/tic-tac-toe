@@ -43,7 +43,8 @@ import com.example.tictactoe.ui.theme.LocalGameColors
 fun StatusBanner(ui: UiState, modifier: Modifier = Modifier) {
     val colors = LocalGameColors.current
     val vsCpu = ui.mode == Mode.VsComputer
-    val (text, tint) = when (val outcome = ui.game.outcome) {
+    val currentTurn = ui.currentTurn
+    val (text, tint) = when (val outcome = ui.currentOutcome) {
         Outcome.Draw -> "It's a draw!" to colors.muted
         is Outcome.Won -> when {
             vsCpu && outcome.winner == Mark.X -> "You win! 🎉"
@@ -51,10 +52,10 @@ fun StatusBanner(ui: UiState, modifier: Modifier = Modifier) {
             else -> "Player ${outcome.winner} wins! 🎉"
         } to colors.forMark(outcome.winner)
         Outcome.InProgress -> when {
-            vsCpu && ui.game.turn == Mark.X -> "Your turn"
+            vsCpu && currentTurn == Mark.X -> "Your turn"
             vsCpu -> "Computer is thinking"
-            else -> "Player ${ui.game.turn}'s turn"
-        } to colors.forMark(ui.game.turn)
+            else -> "Player ${currentTurn}'s turn"
+        } to colors.forMark(currentTurn)
     }
     val animatedTint by animateColorAsState(tint, label = "statusTint")
     val shape = CircleShape

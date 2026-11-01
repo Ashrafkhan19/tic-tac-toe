@@ -7,6 +7,13 @@ interface ProgressRepository {
     fun save(progress: PlayerProgress)
 }
 
+inline fun ProgressRepository.update(transform: (PlayerProgress) -> PlayerProgress): PlayerProgress {
+    val current = load()
+    val updated = transform(current)
+    save(updated)
+    return updated
+}
+
 /** Keeps progress in memory only. For tests and previews; nothing survives the process. */
 class InMemoryProgressRepository(initial: PlayerProgress = PlayerProgress()) : ProgressRepository {
     private var current: PlayerProgress = initial

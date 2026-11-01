@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.widthIn
@@ -20,7 +21,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -29,19 +34,26 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.tictactoe.ads.AdsManager
+import com.example.tictactoe.ads.LocalAdsManager
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.model.Difficulty
+import com.example.tictactoe.domain.model.GameMove
 import com.example.tictactoe.domain.model.GameState
+import com.example.tictactoe.domain.model.GameVariant
+import com.example.tictactoe.domain.model.GridBoard
 import com.example.tictactoe.domain.model.Mark
 import com.example.tictactoe.domain.model.Match
 import com.example.tictactoe.domain.model.MatchSettings
 import com.example.tictactoe.domain.model.Mode
 import com.example.tictactoe.domain.model.Outcome
+import com.example.tictactoe.domain.model.UltimateBoard
 import com.example.tictactoe.domain.progress.PlayerProgress
 import com.example.tictactoe.domain.progress.StreakState
 import com.example.tictactoe.presentation.Intent
 import com.example.tictactoe.presentation.UiState
 import com.example.tictactoe.ui.components.ActionButtons
+import com.example.tictactoe.ui.components.AdaptiveGridBoard
 import com.example.tictactoe.ui.components.AnimatedBackground
 import com.example.tictactoe.ui.components.Board
 import com.example.tictactoe.ui.components.ChallengeHeader
@@ -52,6 +64,9 @@ import com.example.tictactoe.ui.components.ModeSelector
 import com.example.tictactoe.ui.components.ProgressStrip
 import com.example.tictactoe.ui.components.Scoreboard
 import com.example.tictactoe.ui.components.StatusBanner
+import com.example.tictactoe.ui.components.UltimateBoardView
+import com.example.tictactoe.ui.components.VariantBadge
+import com.example.tictactoe.ui.components.VariantPickerSheet
 import com.example.tictactoe.ui.theme.LocalGameColors
 import com.example.tictactoe.ui.theme.TicTacToeTheme
 import kotlinx.datetime.LocalDate
@@ -69,17 +84,80 @@ private val CompactFixedHeight = 135.dp
 /** Line heights of the text above the board in [CompactLayout] at font scale 1 (title, strip, banner, scores, status). */
 private val CompactTextHeight = 160.dp
 
+internal fun createAdInterceptingIntentHandler(
+    adsManager: AdsManager,
+    onIntent: (Intent) -> Unit,
+): (Intent) -> Unit = { intent ->
+    if (intent is Intent.NewRound) {
+        adsManager.showInterstitialIfReady {
+            onIntent(intent)
+        }
+    } else {
+        onIntent(intent)
+    }
+}
+
+internal fun computeCompletedOutcomeKey(
+    variant: GameVariant,
+    xWins: Int,
+    oWins: Int,
+    draws: Int,
+    outcome: Outcome,
+): String? = if (outcome is Outcome.Won || outcome == Outcome.Draw) {
+    "$variant-$xWins-$oWins-$draws-$outcome"
+} else {
+    null
+}
+
 /** Plain, previewable screen: immutable state in, intents out. Adapts between a stacked and a side-by-side layout. */
 @Composable
 internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalGameColors.current
-    val outcome = ui.game.outcome
+    val adsManager = LocalAdsManager.current
+    val outcome = ui.currentOutcome
     val vsCpu = ui.mode == Mode.VsComputer
+
+    var lastRecordedOutcome by rememberSaveable { mutableStateOf<String?>(null) }
+    val completedOutcomeKey = computeCompletedOutcomeKey(
+        variant = ui.variant,
+        xWins = ui.xWins,
+        oWins = ui.oWins,
+        draws = ui.draws,
+        outcome = outcome,
+    )
+
+    LaunchedEffect(completedOutcomeKey) {
+        if (completedOutcomeKey != null) {
+            if (lastRecordedOutcome != completedOutcomeKey) {
+                lastRecordedOutcome = completedOutcomeKey
+                adsManager.onGameCompleted()
+            }
+        } else {
+            lastRecordedOutcome = null
+        }
+    }
+
+    val handleIntentWithAds = remember(adsManager, onIntent) {
+        createAdInterceptingIntentHandler(adsManager, onIntent)
+    }
+
+    var showVariantPicker by remember { mutableStateOf(false) }
+    val onVariantClick = { showVariantPicker = true }
+
+    if (showVariantPicker) {
+        VariantPickerSheet(
+            selectedVariant = ui.variant,
+            onSelect = { variant ->
+                handleIntentWithAds(Intent.SelectVariant(variant))
+            },
+            onDismiss = { showVariantPicker = false },
+        )
+    }
 
     // Celebrate human wins (or any win in 2-player); shake on a loss or draw.
     val celebrates = outcome is Outcome.Won && (!vsCpu || outcome.winner == Mark.X)
     val confettiTrigger = if (celebrates) ui.xWins + ui.oWins else -1
-    val shakeRound: GameState? = ui.game.takeIf { outcome == Outcome.Draw || (outcome is Outcome.Won && !celebrates) }
+    val shakeRound: Outcome? = outcome.takeIf { outcome == Outcome.Draw || (outcome is Outcome.Won && !celebrates) }
 
     val shake = remember { Animatable(0f) }
     LaunchedEffect(shakeRound) {
@@ -92,13 +170,13 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
     AnimatedBackground(modifier.fillMaxSize()) {
         BoxWithConstraints(Modifier.fillMaxSize().safeContentPadding()) {
             if (maxWidth >= WideBreakpoint && maxWidth > maxHeight) {
-                WideLayout(ui, onIntent, boardModifier)
+                WideLayout(ui, handleIntentWithAds, boardModifier, onVariantClick, adsManager)
             } else {
                 val boardSize = minOf(maxWidth - CompactGutter * 2, CompactMaxWidth)
                 val fontScale = LocalDensity.current.fontScale
                 // Rough height of everything stacked above the board: fixed padding plus text that grows with the font scale.
                 val aboveBoard = CompactFixedHeight + CompactTextHeight * fontScale
-                CompactLayout(ui, onIntent, boardModifier, boardFirst = boardSize + aboveBoard > maxHeight)
+                CompactLayout(ui, handleIntentWithAds, boardModifier, boardFirst = boardSize + aboveBoard > maxHeight, onVariantClick = onVariantClick, adsManager = adsManager)
             }
         }
         Confetti(confettiTrigger, listOf(colors.x, colors.o, colors.glowA, colors.glowB, colors.onSurface), Modifier.fillMaxSize())
@@ -111,51 +189,132 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
  * board to the top (the title is dropped) and the rest follows below it.
  */
 @Composable
-private fun CompactLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: Modifier, boardFirst: Boolean) {
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = CompactGutter, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Column(
-            Modifier.widthIn(max = CompactMaxWidth),
-            verticalArrangement = Arrangement.spacedBy(CompactSpacing),
-            horizontalAlignment = Alignment.CenterHorizontally,
+private fun CompactLayout(
+    ui: UiState,
+    onIntent: (Intent) -> Unit,
+    boardModifier: Modifier,
+    boardFirst: Boolean,
+    onVariantClick: () -> Unit,
+    adsManager: AdsManager = LocalAdsManager.current,
+) {
+    Column(Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            val board = @Composable {
-                Board(ui.game, enabled = !ui.isComputerTurn, onCellClick = { onIntent(Intent.CellTapped(it)) }, modifier = boardModifier.fillMaxWidth())
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = CompactGutter, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(
+                    Modifier.widthIn(max = CompactMaxWidth),
+                    verticalArrangement = Arrangement.spacedBy(CompactSpacing),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val board = @Composable {
+                        GameBoard(
+                            ui = ui,
+                            onIntent = onIntent,
+                            modifier = boardModifier.fillMaxWidth(),
+                        )
+                    }
+                    if (boardFirst) {
+                        VariantBadge(
+                            variant = ui.variant,
+                            enabled = !ui.inChallenge,
+                            onClick = onVariantClick,
+                        )
+                        StatusBanner(ui)
+                        board()
+                        Scoreboard(ui)
+                        ProgressSection(ui, onIntent)
+                    } else {
+                        Header(ui = ui, onVariantClick = onVariantClick, compact = true)
+                        ProgressSection(ui, onIntent)
+                        Scoreboard(ui)
+                        StatusBanner(ui)
+                        board()
+                    }
+                    GlassPanel(Modifier.fillMaxWidth()) {
+                        if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
+                        ActionButtons(ui, onIntent)
+                    }
+                }
             }
-            if (boardFirst) {
-                StatusBanner(ui)
-                board()
-                Scoreboard(ui)
-                ProgressSection(ui, onIntent)
-            } else {
-                Header(compact = true)
-                ProgressSection(ui, onIntent)
-                Scoreboard(ui)
-                StatusBanner(ui)
-                board()
-            }
-            GlassPanel(Modifier.fillMaxWidth()) {
-                if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
-                ActionButtons(ui, onIntent)
-            }
+        }
+        if (adsManager.isBannerEnabled) {
+            adsManager.BannerAd(
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+            )
         }
     }
 }
 
 @Composable
-private fun WideLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: Modifier) {
+private fun GameBoard(
+    ui: UiState,
+    onIntent: (Intent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (ui.variant) {
+        GameVariant.CLASSIC_3X3 -> {
+            Board(
+                game = ui.game,
+                enabled = !ui.isComputerTurn,
+                onCellClick = { onIntent(Intent.CellTapped(it)) },
+                modifier = modifier,
+            )
+        }
+        GameVariant.GRID_4X4, GameVariant.GRID_5X5 -> {
+            val grid = ui.gridBoard ?: GridBoard(
+                size = if (ui.variant == GameVariant.GRID_5X5) 5 else 4,
+                winLength = 4,
+            )
+            AdaptiveGridBoard(
+                board = grid,
+                enabled = !ui.isComputerTurn,
+                onCellClick = { onIntent(Intent.PlaceVariantMove(GameMove.Grid(it))) },
+                modifier = modifier,
+            )
+        }
+        GameVariant.ULTIMATE -> {
+            val ultimate = ui.ultimateBoard ?: UltimateBoard()
+            UltimateBoardView(
+                board = ultimate,
+                enabled = !ui.isComputerTurn,
+                onCellClick = { macro, micro ->
+                    onIntent(Intent.PlaceVariantMove(GameMove.Ultimate(macro, micro)))
+                },
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WideLayout(
+    ui: UiState,
+    onIntent: (Intent) -> Unit,
+    boardModifier: Modifier,
+    onVariantClick: () -> Unit,
+    adsManager: AdsManager = LocalAdsManager.current,
+) {
     Row(
         Modifier.fillMaxSize().padding(24.dp),
         horizontalArrangement = Arrangement.spacedBy(32.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.weight(1.1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
-            Board(
-                ui.game,
-                enabled = !ui.isComputerTurn,
-                onCellClick = { onIntent(Intent.CellTapped(it)) },
+            GameBoard(
+                ui = ui,
+                onIntent = onIntent,
                 modifier = boardModifier.widthIn(max = MaxBoardSize).heightIn(max = MaxBoardSize),
             )
         }
@@ -164,13 +323,16 @@ private fun WideLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: M
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
         ) {
-            Header()
+            Header(ui = ui, onVariantClick = onVariantClick)
             ProgressSection(ui, onIntent)
             StatusBanner(ui)
             Scoreboard(ui)
             GlassPanel(Modifier.fillMaxWidth()) {
                 if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
                 ActionButtons(ui, onIntent)
+            }
+            if (adsManager.isBannerEnabled) {
+                adsManager.BannerAd(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp))
             }
         }
     }
@@ -186,11 +348,20 @@ private fun ProgressSection(ui: UiState, onIntent: (Intent) -> Unit) {
     }
 }
 
-/** Title. [compact] drops the tagline and uses a smaller style to leave room for the board on phones. */
+/** Title and variant badge. [compact] drops the tagline and uses a smaller style to leave room for the board on phones. */
 @Composable
-private fun Header(modifier: Modifier = Modifier, compact: Boolean = false) {
+private fun Header(
+    ui: UiState,
+    onVariantClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+) {
     val colors = LocalGameColors.current
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         Text(
             text = "Tic Tac Toe",
             style = (if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displaySmall).copy(
@@ -198,7 +369,20 @@ private fun Header(modifier: Modifier = Modifier, compact: Boolean = false) {
                 brush = Brush.linearGradient(listOf(colors.x, colors.o)),
             ),
         )
-        if (!compact) Text("Three in a row wins", style = MaterialTheme.typography.bodyMedium, color = colors.muted)
+        if (!compact) {
+            val tagline = when (ui.variant) {
+                GameVariant.CLASSIC_3X3 -> "Three in a row wins"
+                GameVariant.GRID_4X4 -> "Four in a row wins on 4×4"
+                GameVariant.GRID_5X5 -> "Four in a row wins on 5×5"
+                GameVariant.ULTIMATE -> "Win three small boards in a row"
+            }
+            Text(tagline, style = MaterialTheme.typography.bodyMedium, color = colors.muted)
+        }
+        VariantBadge(
+            variant = ui.variant,
+            enabled = !ui.inChallenge,
+            onClick = onVariantClick,
+        )
     }
 }
 

@@ -1,6 +1,7 @@
 package com.example.tictactoe.data
 
 import com.example.tictactoe.domain.model.Difficulty
+import com.example.tictactoe.domain.model.GameVariant
 import com.example.tictactoe.domain.progress.DifficultyStats
 import com.example.tictactoe.domain.progress.PlayerProgress
 import com.example.tictactoe.domain.progress.ProgressRepository
@@ -59,12 +60,44 @@ class SettingsProgressRepository(
 
         private val defaults = PlayerProgress()
 
-        fun progress(o: JsonObject) = PlayerProgress(
-            version = int(o, "version") ?: defaults.version,
-            xp = int(o, "xp") ?: defaults.xp,
-            stats = stats(o["stats"]),
-            streak = streak(o["streak"]),
-        )
+        fun progress(o: JsonObject): PlayerProgress {
+            val version = int(o, "version") ?: defaults.version
+            val xp = int(o, "xp") ?: defaults.xp
+            val streak = streak(o["streak"])
+            val variantStats = when {
+                o.containsKey("variantStats") -> variantStats(o["variantStats"])
+                o.containsKey("stats") -> stats(o["stats"]).mapKeys { "${GameVariant.CLASSIC_3X3.name}:${it.key.name}" }
+                else -> emptyMap()
+            }
+            return PlayerProgress(
+                version = version,
+                xp = xp,
+                variantStats = variantStats,
+                streak = streak,
+            )
+        }
+
+        private fun variantStats(element: JsonElement?): Map<String, DifficultyStats> {
+            if (element == null) return emptyMap()
+            val o = element as? JsonObject ?: return dropped(emptyMap())
+            return buildMap {
+                for ((key, value) in o) {
+                    val entry = value as? JsonObject
+                    if (entry == null) {
+                        lossy = true
+                        continue
+                    }
+                    put(
+                        key,
+                        DifficultyStats(
+                            wins = int(entry, "wins") ?: 0,
+                            draws = int(entry, "draws") ?: 0,
+                            losses = int(entry, "losses") ?: 0,
+                        ),
+                    )
+                }
+            }
+        }
 
         private fun stats(element: JsonElement?): Map<Difficulty, DifficultyStats> {
             if (element == null) return emptyMap()
