@@ -34,18 +34,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.model.Difficulty
+import com.example.tictactoe.domain.model.GameMove
 import com.example.tictactoe.domain.model.GameState
 import com.example.tictactoe.domain.model.GameVariant
+import com.example.tictactoe.domain.model.GridBoard
 import com.example.tictactoe.domain.model.Mark
 import com.example.tictactoe.domain.model.Match
 import com.example.tictactoe.domain.model.MatchSettings
 import com.example.tictactoe.domain.model.Mode
 import com.example.tictactoe.domain.model.Outcome
+import com.example.tictactoe.domain.model.UltimateBoard
 import com.example.tictactoe.domain.progress.PlayerProgress
 import com.example.tictactoe.domain.progress.StreakState
 import com.example.tictactoe.presentation.Intent
 import com.example.tictactoe.presentation.UiState
 import com.example.tictactoe.ui.components.ActionButtons
+import com.example.tictactoe.ui.components.AdaptiveGridBoard
 import com.example.tictactoe.ui.components.AnimatedBackground
 import com.example.tictactoe.ui.components.Board
 import com.example.tictactoe.ui.components.ChallengeHeader
@@ -56,6 +60,7 @@ import com.example.tictactoe.ui.components.ModeSelector
 import com.example.tictactoe.ui.components.ProgressStrip
 import com.example.tictactoe.ui.components.Scoreboard
 import com.example.tictactoe.ui.components.StatusBanner
+import com.example.tictactoe.ui.components.UltimateBoardView
 import com.example.tictactoe.ui.components.VariantBadge
 import com.example.tictactoe.ui.components.VariantPickerSheet
 import com.example.tictactoe.ui.theme.LocalGameColors
@@ -147,7 +152,11 @@ private fun CompactLayout(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val board = @Composable {
-                Board(ui.game, enabled = !ui.isComputerTurn, onCellClick = { onIntent(Intent.CellTapped(it)) }, modifier = boardModifier.fillMaxWidth())
+                GameBoard(
+                    ui = ui,
+                    onIntent = onIntent,
+                    modifier = boardModifier.fillMaxWidth(),
+                )
             }
             if (boardFirst) {
                 VariantBadge(
@@ -175,6 +184,47 @@ private fun CompactLayout(
 }
 
 @Composable
+private fun GameBoard(
+    ui: UiState,
+    onIntent: (Intent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (ui.variant) {
+        GameVariant.CLASSIC_3X3 -> {
+            Board(
+                game = ui.game,
+                enabled = !ui.isComputerTurn,
+                onCellClick = { onIntent(Intent.CellTapped(it)) },
+                modifier = modifier,
+            )
+        }
+        GameVariant.GRID_4X4, GameVariant.GRID_5X5 -> {
+            val grid = ui.gridBoard ?: GridBoard(
+                size = if (ui.variant == GameVariant.GRID_5X5) 5 else 4,
+                winLength = 4,
+            )
+            AdaptiveGridBoard(
+                board = grid,
+                enabled = !ui.isComputerTurn,
+                onCellClick = { onIntent(Intent.PlaceVariantMove(GameMove.Grid(it))) },
+                modifier = modifier,
+            )
+        }
+        GameVariant.ULTIMATE -> {
+            val ultimate = ui.ultimateBoard ?: UltimateBoard()
+            UltimateBoardView(
+                board = ultimate,
+                enabled = !ui.isComputerTurn,
+                onCellClick = { macro, micro ->
+                    onIntent(Intent.PlaceVariantMove(GameMove.Ultimate(macro, micro)))
+                },
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+@Composable
 private fun WideLayout(
     ui: UiState,
     onIntent: (Intent) -> Unit,
@@ -187,10 +237,9 @@ private fun WideLayout(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.weight(1.1f).fillMaxHeight(), contentAlignment = Alignment.Center) {
-            Board(
-                ui.game,
-                enabled = !ui.isComputerTurn,
-                onCellClick = { onIntent(Intent.CellTapped(it)) },
+            GameBoard(
+                ui = ui,
+                onIntent = onIntent,
                 modifier = boardModifier.widthIn(max = MaxBoardSize).heightIn(max = MaxBoardSize),
             )
         }
