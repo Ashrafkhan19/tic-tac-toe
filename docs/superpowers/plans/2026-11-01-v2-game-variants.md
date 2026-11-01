@@ -84,7 +84,7 @@
   }
   ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `core/src/commonTest/kotlin/com/example/tictactoe/domain/GridBoardTest.kt`:
 ```kotlin
@@ -134,12 +134,12 @@ class GridBoardTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.GridBoardTest"`
 Expected: Compilation failure ("Unresolved reference: GridBoard, GameVariant").
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `core/src/commonMain/kotlin/com/example/tictactoe/domain/model/GameVariant.kt`:
 ```kotlin
@@ -228,12 +228,12 @@ data class GridBoard(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.GridBoardTest"`
 Expected: BUILD SUCCESSFUL (3 tests passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/model/GameVariant.kt core/src/commonMain/kotlin/com/example/tictactoe/domain/model/GridBoard.kt core/src/commonTest/kotlin/com/example/tictactoe/domain/GridBoardTest.kt
@@ -263,7 +263,7 @@ git commit -m "feat(core): add parameterized GridBoard and GameVariant models"
   }
   ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `core/src/commonTest/kotlin/com/example/tictactoe/domain/UltimateBoardTest.kt`:
 ```kotlin
@@ -311,12 +311,12 @@ class UltimateBoardTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.UltimateBoardTest"`
 Expected: Compilation failure ("Unresolved reference: UltimateBoard").
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `core/src/commonMain/kotlin/com/example/tictactoe/domain/model/UltimateBoard.kt`:
 ```kotlin
@@ -377,12 +377,12 @@ data class UltimateBoard(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.UltimateBoardTest"`
 Expected: BUILD SUCCESSFUL (3 tests passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/model/UltimateBoard.kt core/src/commonTest/kotlin/com/example/tictactoe/domain/UltimateBoardTest.kt
@@ -413,7 +413,7 @@ git commit -m "feat(core): add UltimateBoard composite mechanics with active sub
   }
   ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `core/src/commonTest/kotlin/com/example/tictactoe/domain/HeuristicGridAITest.kt`:
 ```kotlin
@@ -461,12 +461,12 @@ class HeuristicGridAITest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.HeuristicGridAITest"`
 Expected: Compilation failure ("Unresolved reference: HeuristicGridAI").
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `core/src/commonMain/kotlin/com/example/tictactoe/domain/player/HeuristicGridAI.kt`:
 ```kotlin
@@ -583,12 +583,12 @@ class HeuristicGridAI(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.HeuristicGridAITest"`
 Expected: BUILD SUCCESSFUL (3 tests passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/player/HeuristicGridAI.kt core/src/commonTest/kotlin/com/example/tictactoe/domain/HeuristicGridAITest.kt
@@ -619,7 +619,7 @@ git commit -m "feat(core): add Alpha-Beta HeuristicGridAI for 4x4 and 5x5 boards
   }
   ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `core/src/commonTest/kotlin/com/example/tictactoe/domain/UltimateAITest.kt`:
 ```kotlin
@@ -664,12 +664,12 @@ class UltimateAITest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.UltimateAITest"`
 Expected: Compilation failure ("Unresolved reference: UltimateAI").
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `core/src/commonMain/kotlin/com/example/tictactoe/domain/player/UltimateAI.kt`:
 ```kotlin
@@ -780,12 +780,12 @@ class UltimateAI(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.UltimateAITest"`
 Expected: BUILD SUCCESSFUL (2 tests passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/player/UltimateAI.kt core/src/commonTest/kotlin/com/example/tictactoe/domain/UltimateAITest.kt
@@ -817,7 +817,7 @@ git commit -m "feat(core): add UltimateAI hierarchical evaluator"
   )
   ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `core/src/commonTest/kotlin/com/example/tictactoe/domain/ProgressMigrationTest.kt`:
 ```kotlin
@@ -871,12 +871,12 @@ class ProgressMigrationTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.ProgressMigrationTest"`
 Expected: Compilation failure ("Unresolved reference: fromJson, statsFor").
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Update `core/src/commonMain/kotlin/com/example/tictactoe/domain/progress/PlayerProgress.kt`:
 ```kotlin
@@ -1032,12 +1032,12 @@ object XpRules {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :core:jvmTest --tests "com.example.tictactoe.domain.ProgressMigrationTest"`
 Expected: BUILD SUCCESSFUL (2 tests passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/progress/PlayerProgress.kt core/src/commonMain/kotlin/com/example/tictactoe/domain/progress/XpRules.kt core/src/commonTest/kotlin/com/example/tictactoe/domain/ProgressMigrationTest.kt
@@ -1060,7 +1060,7 @@ git commit -m "feat(core): add PlayerProgress v2 schema migration and variant-sc
   `MatchSettings(mode, difficulty, variant)`
   `UiState` containing active `variant`, `gridBoard: GridBoard?`, `ultimateBoard: UltimateBoard?`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/shared/src/commonTest/kotlin/com/example/tictactoe/presentation/GameViewModelVariantTest.kt`:
 ```kotlin
@@ -1128,12 +1128,12 @@ class GameViewModelVariantTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :app:shared:jvmTest --tests "com.example.tictactoe.presentation.GameViewModelVariantTest"`
 Expected: Compilation failure ("Unresolved reference: SelectVariant, variant, gridBoard, ultimateBoard").
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Modify `core/src/commonMain/kotlin/com/example/tictactoe/domain/model/Match.kt`:
 Add `val variant: GameVariant = GameVariant.CLASSIC_3X3` to `MatchSettings`.
@@ -1154,12 +1154,12 @@ Handle `Intent.SelectVariant` and `Intent.PlaceVariantMove`:
 - When variant is `ULTIMATE`, initialize `ultimateBoard = UltimateBoard()`. If vs computer and computer's turn, trigger `UltimateAI`.
 - On match finish, record progress using `recordGame(variant, difficulty, result)`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :app:shared:jvmTest --tests "com.example.tictactoe.presentation.GameViewModelVariantTest"`
 Expected: BUILD SUCCESSFUL (2 tests passed).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/model/Match.kt app/shared/src/commonMain/kotlin/com/example/tictactoe/presentation/GameMvi.kt app/shared/src/commonMain/kotlin/com/example/tictactoe/presentation/GameViewModel.kt app/shared/src/commonTest/kotlin/com/example/tictactoe/presentation/GameViewModelVariantTest.kt
@@ -1180,7 +1180,7 @@ git commit -m "feat(presentation): integrate GameVariant and boards into GameVie
 - Produces:
   `VariantPickerSheet(currentVariant: GameVariant, onSelect: (GameVariant) -> Unit, onDismiss: () -> Unit)`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/shared/src/commonTest/kotlin/com/example/tictactoe/ui/VariantPickerTest.kt`:
 ```kotlin
@@ -1203,12 +1203,12 @@ class VariantPickerTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :app:shared:jvmTest --tests "com.example.tictactoe.ui.VariantPickerTest"`
 Expected: PASS (or fail if labels don't match exactly).
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/components/VariantPickerSheet.kt`:
 ```kotlin
@@ -1294,12 +1294,12 @@ fun VariantPickerSheet(
 Modify `app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/GameScreen.kt`:
 Add a badge in the header displaying the active variant and an option to trigger `VariantPickerSheet`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :app:shared:jvmTest`
 Expected: BUILD SUCCESSFUL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/components/VariantPickerSheet.kt app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/GameScreen.kt app/shared/src/commonTest/kotlin/com/example/tictactoe/ui/VariantPickerTest.kt
@@ -1321,7 +1321,7 @@ git commit -m "feat(ui): add VariantPickerSheet and game variant header indicato
   `AdaptiveGridBoard(board: GridBoard, onCellClick: (Int) -> Unit)`
   `UltimateBoardView(board: UltimateBoard, onCellClick: (macroIndex: Int, microIndex: Int) -> Unit)`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `app/shared/src/commonTest/kotlin/com/example/tictactoe/ui/BoardLayoutCalculationTest.kt`:
 ```kotlin
@@ -1346,12 +1346,12 @@ class BoardLayoutCalculationTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :app:shared:jvmTest --tests "com.example.tictactoe.ui.BoardLayoutCalculationTest"`
 Expected: PASS.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/components/AdaptiveGridBoard.kt`:
 ```kotlin
@@ -1529,12 +1529,12 @@ fun UltimateBoardView(
 Modify `app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/GameScreen.kt`:
 Conditionally display `AdaptiveGridBoard` when `uiState.variant in [GRID_4X4, GRID_5X5]`, `UltimateBoardView` when `uiState.variant == ULTIMATE`, and the classic `Board` component when `uiState.variant == CLASSIC_3X3`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home ./gradlew :app:shared:jvmTest`
 Expected: BUILD SUCCESSFUL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/components/AdaptiveGridBoard.kt app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/components/UltimateBoardView.kt app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/GameScreen.kt app/shared/src/commonTest/kotlin/com/example/tictactoe/ui/BoardLayoutCalculationTest.kt
