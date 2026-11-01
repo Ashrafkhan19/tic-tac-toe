@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.example.tictactoe.ui.theme.LocalGameColors
 import kotlin.math.PI
@@ -60,9 +61,12 @@ fun AnimatedBackground(modifier: Modifier = Modifier, content: @Composable BoxSc
 }
 
 @Composable
-fun GlassPanel(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun GlassPanel(
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(24.dp),
+    content: @Composable ColumnScope.() -> Unit
+) {
     val colors = LocalGameColors.current
-    val shape = RoundedCornerShape(24.dp)
     Column(
         modifier
             .clip(shape)

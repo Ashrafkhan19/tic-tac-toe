@@ -20,7 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.model.Difficulty
 import com.example.tictactoe.domain.model.GameState
+import com.example.tictactoe.domain.model.GameVariant
 import com.example.tictactoe.domain.model.Mark
 import com.example.tictactoe.domain.model.Match
 import com.example.tictactoe.domain.model.MatchSettings
@@ -52,6 +56,8 @@ import com.example.tictactoe.ui.components.ModeSelector
 import com.example.tictactoe.ui.components.ProgressStrip
 import com.example.tictactoe.ui.components.Scoreboard
 import com.example.tictactoe.ui.components.StatusBanner
+import com.example.tictactoe.ui.components.VariantBadge
+import com.example.tictactoe.ui.components.VariantPickerSheet
 import com.example.tictactoe.ui.theme.LocalGameColors
 import com.example.tictactoe.ui.theme.TicTacToeTheme
 import kotlinx.datetime.LocalDate
@@ -76,6 +82,19 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
     val outcome = ui.game.outcome
     val vsCpu = ui.mode == Mode.VsComputer
 
+    var showVariantPicker by remember { mutableStateOf(false) }
+    val onVariantClick = { showVariantPicker = true }
+
+    if (showVariantPicker) {
+        VariantPickerSheet(
+            selectedVariant = ui.variant,
+            onSelect = { variant ->
+                onIntent(Intent.SelectVariant(variant))
+            },
+            onDismiss = { showVariantPicker = false },
+        )
+    }
+
     // Celebrate human wins (or any win in 2-player); shake on a loss or draw.
     val celebrates = outcome is Outcome.Won && (!vsCpu || outcome.winner == Mark.X)
     val confettiTrigger = if (celebrates) ui.xWins + ui.oWins else -1
@@ -92,13 +111,13 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
     AnimatedBackground(modifier.fillMaxSize()) {
         BoxWithConstraints(Modifier.fillMaxSize().safeContentPadding()) {
             if (maxWidth >= WideBreakpoint && maxWidth > maxHeight) {
-                WideLayout(ui, onIntent, boardModifier)
+                WideLayout(ui, onIntent, boardModifier, onVariantClick)
             } else {
                 val boardSize = minOf(maxWidth - CompactGutter * 2, CompactMaxWidth)
                 val fontScale = LocalDensity.current.fontScale
                 // Rough height of everything stacked above the board: fixed padding plus text that grows with the font scale.
                 val aboveBoard = CompactFixedHeight + CompactTextHeight * fontScale
-                CompactLayout(ui, onIntent, boardModifier, boardFirst = boardSize + aboveBoard > maxHeight)
+                CompactLayout(ui, onIntent, boardModifier, boardFirst = boardSize + aboveBoard > maxHeight, onVariantClick = onVariantClick)
             }
         }
         Confetti(confettiTrigger, listOf(colors.x, colors.o, colors.glowA, colors.glowB, colors.onSurface), Modifier.fillMaxSize())
@@ -111,7 +130,13 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
  * board to the top (the title is dropped) and the rest follows below it.
  */
 @Composable
-private fun CompactLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: Modifier, boardFirst: Boolean) {
+private fun CompactLayout(
+    ui: UiState,
+    onIntent: (Intent) -> Unit,
+    boardModifier: Modifier,
+    boardFirst: Boolean,
+    onVariantClick: () -> Unit,
+) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = CompactGutter, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -125,12 +150,17 @@ private fun CompactLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier
                 Board(ui.game, enabled = !ui.isComputerTurn, onCellClick = { onIntent(Intent.CellTapped(it)) }, modifier = boardModifier.fillMaxWidth())
             }
             if (boardFirst) {
+                VariantBadge(
+                    variant = ui.variant,
+                    enabled = !ui.inChallenge,
+                    onClick = onVariantClick,
+                )
                 StatusBanner(ui)
                 board()
                 Scoreboard(ui)
                 ProgressSection(ui, onIntent)
             } else {
-                Header(compact = true)
+                Header(ui = ui, onVariantClick = onVariantClick, compact = true)
                 ProgressSection(ui, onIntent)
                 Scoreboard(ui)
                 StatusBanner(ui)
@@ -145,7 +175,12 @@ private fun CompactLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier
 }
 
 @Composable
-private fun WideLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: Modifier) {
+private fun WideLayout(
+    ui: UiState,
+    onIntent: (Intent) -> Unit,
+    boardModifier: Modifier,
+    onVariantClick: () -> Unit,
+) {
     Row(
         Modifier.fillMaxSize().padding(24.dp),
         horizontalArrangement = Arrangement.spacedBy(32.dp),
@@ -164,7 +199,7 @@ private fun WideLayout(ui: UiState, onIntent: (Intent) -> Unit, boardModifier: M
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
         ) {
-            Header()
+            Header(ui = ui, onVariantClick = onVariantClick)
             ProgressSection(ui, onIntent)
             StatusBanner(ui)
             Scoreboard(ui)
@@ -186,11 +221,20 @@ private fun ProgressSection(ui: UiState, onIntent: (Intent) -> Unit) {
     }
 }
 
-/** Title. [compact] drops the tagline and uses a smaller style to leave room for the board on phones. */
+/** Title and variant badge. [compact] drops the tagline and uses a smaller style to leave room for the board on phones. */
 @Composable
-private fun Header(modifier: Modifier = Modifier, compact: Boolean = false) {
+private fun Header(
+    ui: UiState,
+    onVariantClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
+) {
     val colors = LocalGameColors.current
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         Text(
             text = "Tic Tac Toe",
             style = (if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displaySmall).copy(
@@ -198,7 +242,20 @@ private fun Header(modifier: Modifier = Modifier, compact: Boolean = false) {
                 brush = Brush.linearGradient(listOf(colors.x, colors.o)),
             ),
         )
-        if (!compact) Text("Three in a row wins", style = MaterialTheme.typography.bodyMedium, color = colors.muted)
+        if (!compact) {
+            val tagline = when (ui.variant) {
+                GameVariant.CLASSIC_3X3 -> "Three in a row wins"
+                GameVariant.GRID_4X4 -> "Four in a row wins on 4×4"
+                GameVariant.GRID_5X5 -> "Four in a row wins on 5×5"
+                GameVariant.ULTIMATE -> "Win three small boards in a row"
+            }
+            Text(tagline, style = MaterialTheme.typography.bodyMedium, color = colors.muted)
+        }
+        VariantBadge(
+            variant = ui.variant,
+            enabled = !ui.inChallenge,
+            onClick = onVariantClick,
+        )
     }
 }
 
