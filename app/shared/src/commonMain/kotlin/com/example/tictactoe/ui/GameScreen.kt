@@ -32,6 +32,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.tictactoe.ads.AdsManager
+import com.example.tictactoe.ads.LocalAdsManager
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.model.Difficulty
 import com.example.tictactoe.domain.model.GameMove
@@ -84,8 +86,25 @@ private val CompactTextHeight = 160.dp
 @Composable
 internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalGameColors.current
+    val adsManager = LocalAdsManager.current
     val outcome = ui.currentOutcome
     val vsCpu = ui.mode == Mode.VsComputer
+
+    LaunchedEffect(outcome) {
+        if (outcome is Outcome.Won || outcome == Outcome.Draw) {
+            adsManager.onGameCompleted()
+        }
+    }
+
+    val handleIntentWithAds: (Intent) -> Unit = { intent ->
+        if (intent is Intent.NewRound) {
+            adsManager.showInterstitialIfReady {
+                onIntent(intent)
+            }
+        } else {
+            onIntent(intent)
+        }
+    }
 
     var showVariantPicker by remember { mutableStateOf(false) }
     val onVariantClick = { showVariantPicker = true }
@@ -94,7 +113,7 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
         VariantPickerSheet(
             selectedVariant = ui.variant,
             onSelect = { variant ->
-                onIntent(Intent.SelectVariant(variant))
+                handleIntentWithAds(Intent.SelectVariant(variant))
             },
             onDismiss = { showVariantPicker = false },
         )
@@ -116,13 +135,13 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
     AnimatedBackground(modifier.fillMaxSize()) {
         BoxWithConstraints(Modifier.fillMaxSize().safeContentPadding()) {
             if (maxWidth >= WideBreakpoint && maxWidth > maxHeight) {
-                WideLayout(ui, onIntent, boardModifier, onVariantClick)
+                WideLayout(ui, handleIntentWithAds, boardModifier, onVariantClick, adsManager)
             } else {
                 val boardSize = minOf(maxWidth - CompactGutter * 2, CompactMaxWidth)
                 val fontScale = LocalDensity.current.fontScale
                 // Rough height of everything stacked above the board: fixed padding plus text that grows with the font scale.
                 val aboveBoard = CompactFixedHeight + CompactTextHeight * fontScale
-                CompactLayout(ui, onIntent, boardModifier, boardFirst = boardSize + aboveBoard > maxHeight, onVariantClick = onVariantClick)
+                CompactLayout(ui, handleIntentWithAds, boardModifier, boardFirst = boardSize + aboveBoard > maxHeight, onVariantClick = onVariantClick, adsManager = adsManager)
             }
         }
         Confetti(confettiTrigger, listOf(colors.x, colors.o, colors.glowA, colors.glowB, colors.onSurface), Modifier.fillMaxSize())
@@ -141,6 +160,7 @@ private fun CompactLayout(
     boardModifier: Modifier,
     boardFirst: Boolean,
     onVariantClick: () -> Unit,
+    adsManager: AdsManager = LocalAdsManager.current,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = CompactGutter, vertical = 8.dp),
@@ -178,6 +198,9 @@ private fun CompactLayout(
             GlassPanel(Modifier.fillMaxWidth()) {
                 if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
                 ActionButtons(ui, onIntent)
+            }
+            if (adsManager.isBannerEnabled) {
+                adsManager.BannerAd(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp))
             }
         }
     }
@@ -230,6 +253,7 @@ private fun WideLayout(
     onIntent: (Intent) -> Unit,
     boardModifier: Modifier,
     onVariantClick: () -> Unit,
+    adsManager: AdsManager = LocalAdsManager.current,
 ) {
     Row(
         Modifier.fillMaxSize().padding(24.dp),
@@ -255,6 +279,9 @@ private fun WideLayout(
             GlassPanel(Modifier.fillMaxWidth()) {
                 if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
                 ActionButtons(ui, onIntent)
+            }
+            if (adsManager.isBannerEnabled) {
+                adsManager.BannerAd(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp))
             }
         }
     }
