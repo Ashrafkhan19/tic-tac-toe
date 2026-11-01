@@ -87,3 +87,4 @@ object CognitiveBenchmark {
         else -> "Building Stamina"
     }
 }
+

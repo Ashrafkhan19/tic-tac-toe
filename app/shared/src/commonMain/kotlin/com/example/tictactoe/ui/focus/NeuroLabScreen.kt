@@ -50,7 +50,8 @@ enum class NeuroDrillType {
     TRAIL_MAKING,
     SPEED_MATH,
     BACKWARD_SPAN,
-    MATRIX_LOGIC
+    MATRIX_LOGIC,
+    FLANKER
 }
 
 @Composable
@@ -133,6 +134,12 @@ fun NeuroLabScreen(
         }
         NeuroDrillType.MATRIX_LOGIC -> {
             MatrixLogicScreen(
+                onComplete = onDrillComplete,
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.FLANKER -> {
+            FlankerDrillScreen(
                 onComplete = onDrillComplete,
                 onBack = { activeDrill = NeuroDrillType.MENU }
             )
@@ -250,6 +257,14 @@ private fun NeuroLabMenuView(
                         title = "Visual Matrix Reasoning",
                         desc = "Raven's matrices abstract puzzle solving to test and strengthen non-verbal fluid logic.",
                         onClick = { onSelectDrill(NeuroDrillType.MATRIX_LOGIC) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "🎯",
+                        title = "Eriksen Flanker Task",
+                        desc = "Selective attention & spatial distractor suppression. Identify center arrow direction amidst conflicting flankers.",
+                        onClick = { onSelectDrill(NeuroDrillType.FLANKER) }
                     )
                 }
             }

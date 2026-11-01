@@ -2,6 +2,7 @@ package com.example.tictactoe.ui.focus
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -51,6 +53,7 @@ fun FocusTimerScreen(
     var distractionsLogged by remember { mutableStateOf(0) }
     var showDistractionToast by remember { mutableStateOf(false) }
     var isFinished by remember { mutableStateOf(false) }
+    var gamma40HzActive by remember { mutableStateOf(false) }
 
     LaunchedEffect(isRunning, secondsRemaining) {
         if (isRunning && secondsRemaining > 0) {
@@ -145,8 +148,43 @@ fun FocusTimerScreen(
                             }
                         )
                     }
+
+                    // 40Hz Gamma Isochronic Toggle
+                    Row(
+                        modifier = Modifier
+                            .clickable { gamma40HzActive = !gamma40HzActive }
+                            .background(
+                                if (gamma40HzActive) Color(0xFF673AB7).copy(alpha = 0.22f) else colors.panel,
+                                RoundedCornerShape(16.dp)
+                            )
+                            .border(
+                                1.dp,
+                                if (gamma40HzActive) Color(0xFFB39DDB) else colors.panelBorder,
+                                RoundedCornerShape(16.dp)
+                            )
+                            .padding(horizontal = 14.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(if (gamma40HzActive) "🔬" else "🎧", fontSize = 13.sp)
+                        Text(
+                            text = if (gamma40HzActive) "40Hz Gamma Entrainment ON" else "Enable 40Hz Gamma Entrainment",
+                            fontSize = 11.sp,
+                            fontWeight = if (gamma40HzActive) FontWeight.Bold else FontWeight.Normal,
+                            color = if (gamma40HzActive) Color(0xFFD1C4E9) else colors.muted
+                        )
+                    }
                 } else {
-                    Spacer(modifier = Modifier.height(30.dp))
+                    if (gamma40HzActive) {
+                        Text(
+                            text = "🔬 40Hz GENUS Protocol Active (MIT Glymphatic Clearance)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFFB39DDB),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
                 }
 
                 // Central Timer Circle

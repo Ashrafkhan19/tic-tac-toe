@@ -32,6 +32,7 @@ import com.example.tictactoe.ui.focus.NeuroLabScreen
 import com.example.tictactoe.ui.focus.ReadingSanctuaryScreen
 import com.example.tictactoe.ui.focus.SomaticResetScreen
 import com.example.tictactoe.ui.focus.UrgeSurferScreen
+import com.example.tictactoe.ui.focus.WakefulRestScreen
 import com.example.tictactoe.ui.theme.LocalGameColors
 import com.example.tictactoe.ui.theme.TicTacToeTheme
 
@@ -43,6 +44,7 @@ enum class ScreenRoute {
     FOCUS_TIMER,
     STRATEGY_GAME,
     SOMATIC_RESET,
+    WAKEFUL_REST,
     ANALYTICS
 }
 
@@ -65,6 +67,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                         onOpenFocusTimer = { currentRoute = ScreenRoute.FOCUS_TIMER },
                         onOpenStrategyGame = { currentRoute = ScreenRoute.STRATEGY_GAME },
                         onOpenSomaticReset = { currentRoute = ScreenRoute.SOMATIC_RESET },
+                        onOpenWakefulRest = { currentRoute = ScreenRoute.WAKEFUL_REST },
                         onOpenAnalytics = { currentRoute = ScreenRoute.ANALYTICS },
                         onToggleSleepFoundation = {
                             val nextState = !dailyCircuit.sleepLogged
@@ -196,6 +199,17 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                 }
                 ScreenRoute.SOMATIC_RESET -> {
                     SomaticResetScreen(
+                        onFinished = { xp ->
+                            val updated = playerProgress.copy(xp = playerProgress.xp + xp)
+                            container.progressRepository.save(updated)
+                            playerProgress = updated
+                            currentRoute = ScreenRoute.GYM
+                        },
+                        onDismiss = { currentRoute = ScreenRoute.GYM }
+                    )
+                }
+                ScreenRoute.WAKEFUL_REST -> {
+                    WakefulRestScreen(
                         onFinished = { xp ->
                             val updated = playerProgress.copy(xp = playerProgress.xp + xp)
                             container.progressRepository.save(updated)

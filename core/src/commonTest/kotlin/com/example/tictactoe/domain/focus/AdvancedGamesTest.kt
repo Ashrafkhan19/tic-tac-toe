@@ -54,3 +54,4 @@ class AdvancedGamesTest {
         assertTrue(correct)
     }
 }
+

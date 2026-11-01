@@ -221,3 +221,4 @@ class MatrixLogicEngine {
         return chosenIndex == puzzle.correctOptionIndex
     }
 }
+
