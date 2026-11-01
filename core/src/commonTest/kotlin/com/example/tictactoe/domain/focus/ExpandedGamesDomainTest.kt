@@ -67,3 +67,4 @@ class ExpandedGamesDomainTest {
         assertEquals(1, session.misses)
     }
 }
+
