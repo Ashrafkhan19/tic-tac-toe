@@ -52,6 +52,7 @@ fun GymScreen(
     onOpenReading: () -> Unit,
     onOpenFocusTimer: () -> Unit,
     onOpenStrategyGame: () -> Unit,
+    onOpenSomaticReset: () -> Unit,
     onToggleSleepFoundation: () -> Unit,
     onToggleMovementFoundation: () -> Unit
 ) {
@@ -193,6 +194,37 @@ fun GymScreen(
                             activeScienceInsight = "AEROBIC MOVEMENT & BDNF NEUROGENESIS\n\nMeta-analyses (Ye et al. 2024) confirm that 20 minutes of moderate aerobic exercise triggers systemic release of Brain-Derived Neurotrophic Factor (BDNF). This stimulates neurogenesis and immediately elevates executive function, working memory, and focus for 2–3 hours."
                         }
                     )
+                }
+
+                // Somatic Body Reset Card
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenSomaticReset() }
+                        .border(1.dp, Color(0xFF66BB6A).copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF66BB6A).copy(alpha = 0.1f)),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text("🌿", fontSize = 24.sp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Somatic Body Reset (2 min)",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Color(0xFFA5D6A7),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Guided muscle tension & release to purge physical screen cortisol",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.onSurface.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
                 }
             }
 

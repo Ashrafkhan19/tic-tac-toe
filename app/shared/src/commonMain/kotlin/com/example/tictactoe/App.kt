@@ -29,6 +29,7 @@ import com.example.tictactoe.ui.focus.FocusTimerScreen
 import com.example.tictactoe.ui.focus.GymScreen
 import com.example.tictactoe.ui.focus.NeuroLabScreen
 import com.example.tictactoe.ui.focus.ReadingSanctuaryScreen
+import com.example.tictactoe.ui.focus.SomaticResetScreen
 import com.example.tictactoe.ui.focus.UrgeSurferScreen
 import com.example.tictactoe.ui.theme.LocalGameColors
 import com.example.tictactoe.ui.theme.TicTacToeTheme
@@ -39,7 +40,8 @@ enum class ScreenRoute {
     NEURO_LAB,
     DEEP_READING,
     FOCUS_TIMER,
-    STRATEGY_GAME
+    STRATEGY_GAME,
+    SOMATIC_RESET
 }
 
 @Composable
@@ -60,6 +62,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                         onOpenReading = { currentRoute = ScreenRoute.DEEP_READING },
                         onOpenFocusTimer = { currentRoute = ScreenRoute.FOCUS_TIMER },
                         onOpenStrategyGame = { currentRoute = ScreenRoute.STRATEGY_GAME },
+                        onOpenSomaticReset = { currentRoute = ScreenRoute.SOMATIC_RESET },
                         onToggleSleepFoundation = {
                             val nextState = !dailyCircuit.sleepLogged
                             dailyCircuit = dailyCircuit.copy(sleepLogged = nextState)
@@ -153,6 +156,17 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                             playerProgress = container.progressRepository.load()
                             currentRoute = ScreenRoute.GYM
                         }
+                    )
+                }
+                ScreenRoute.SOMATIC_RESET -> {
+                    SomaticResetScreen(
+                        onFinished = { xp ->
+                            val updated = playerProgress.copy(xp = playerProgress.xp + xp)
+                            container.progressRepository.save(updated)
+                            playerProgress = updated
+                            currentRoute = ScreenRoute.GYM
+                        },
+                        onDismiss = { currentRoute = ScreenRoute.GYM }
                     )
                 }
             }

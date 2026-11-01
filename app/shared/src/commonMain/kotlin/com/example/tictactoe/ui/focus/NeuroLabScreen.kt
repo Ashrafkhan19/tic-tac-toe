@@ -2,6 +2,7 @@ package com.example.tictactoe.ui.focus
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -38,12 +40,189 @@ import androidx.compose.ui.unit.sp
 import com.example.tictactoe.domain.focus.StroopColor
 import com.example.tictactoe.domain.focus.StroopEngine
 import com.example.tictactoe.ui.theme.LocalGameColors
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+
+enum class NeuroDrillType {
+    MENU,
+    STROOP,
+    GO_NO_GO,
+    N_BACK,
+    CORSI_BLOCK
+}
 
 @Composable
 fun NeuroLabScreen(
     onDrillComplete: (scorePercent: Int) -> Unit,
+    onBack: () -> Unit
+) {
+    var activeDrill by remember { mutableStateOf(NeuroDrillType.MENU) }
+
+    when (activeDrill) {
+        NeuroDrillType.MENU -> {
+            NeuroLabMenuView(
+                onSelectDrill = { activeDrill = it },
+                onBack = onBack
+            )
+        }
+        NeuroDrillType.STROOP -> {
+            StroopDrillView(
+                onComplete = onDrillComplete,
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.GO_NO_GO -> {
+            GoNoGoDrillScreen(
+                onComplete = onDrillComplete,
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.N_BACK -> {
+            NBackDrillScreen(
+                onComplete = onDrillComplete,
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.CORSI_BLOCK -> {
+            CorsiBlockScreen(
+                onComplete = { span ->
+                    // Convert span to score percent (e.g. span 6 -> 85%)
+                    val scorePercent = (span * 15).coerceIn(40, 100)
+                    onDrillComplete(scorePercent)
+                },
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+    }
+}
+
+@Composable
+private fun NeuroLabMenuView(
+    onSelectDrill: (NeuroDrillType) -> Unit,
+    onBack: () -> Unit
+) {
+    val colors = LocalGameColors.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(colors.backgroundTop, colors.backgroundBottom)
+                )
+            )
+            .padding(24.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = onBack,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(36.dp)
+                ) {
+                    Text("Back", color = colors.muted, fontSize = 12.sp)
+                }
+                Text(
+                    text = "NEURO LAB DRILLS",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = colors.primary,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                )
+                Spacer(modifier = Modifier.size(48.dp))
+            }
+
+            Text(
+                text = "Clinical cognitive exercises designed to restore prefrontal control, expand memory, and halt impulsive reflexes.",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.muted,
+                modifier = Modifier.padding(bottom = 20.dp)
+            )
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                item {
+                    DrillMenuCard(
+                        icon = "🔴",
+                        title = "Stroop Interference Drill",
+                        desc = "Inhibit automatic reading impulses by naming font colors under cognitive interference.",
+                        onClick = { onSelectDrill(NeuroDrillType.STROOP) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "⚡",
+                        title = "Go / No-Go Motor Reflex",
+                        desc = "Train motor inhibition. Tap rapidly on green targets, freeze completely on red diamonds.",
+                        onClick = { onSelectDrill(NeuroDrillType.GO_NO_GO) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "🔷",
+                        title = "Visual 2-Back Stream",
+                        desc = "The gold standard for fluid intelligence. Detect geometric matches shown 2 steps prior.",
+                        onClick = { onSelectDrill(NeuroDrillType.N_BACK) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "🟦",
+                        title = "Corsi Block Spatial Span",
+                        desc = "Recall and reproduce expanding sequences of spatial coordinates to strengthen hippocampal memory.",
+                        onClick = { onSelectDrill(NeuroDrillType.CORSI_BLOCK) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrillMenuCard(
+    icon: String,
+    title: String,
+    desc: String,
+    onClick: () -> Unit
+) {
+    val colors = LocalGameColors.current
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .border(1.dp, colors.panelBorder, RoundedCornerShape(14.dp)),
+        colors = CardDefaults.cardColors(containerColor = colors.panel),
+        shape = RoundedCornerShape(14.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(text = icon, fontSize = 32.sp)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = colors.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = desc,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colors.muted,
+                    lineHeight = 18.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StroopDrillView(
+    onComplete: (scorePercent: Int) -> Unit,
     onBack: () -> Unit
 ) {
     val colors = LocalGameColors.current
@@ -52,7 +231,6 @@ fun NeuroLabScreen(
     var completedCount by remember { mutableStateOf(engine.completedTrialsCount()) }
     var feedbackColor by remember { mutableStateOf<Color?>(null) }
     var isFinished by remember { mutableStateOf(engine.isFinished()) }
-    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -89,7 +267,7 @@ fun NeuroLabScreen(
                             Text("Back", color = colors.muted, fontSize = 12.sp)
                         }
                         Text(
-                            text = "NEURO LAB: STROOP DRILL",
+                            text = "STROOP INHIBITORY DRILL",
                             style = MaterialTheme.typography.titleSmall,
                             color = colors.primary,
                             fontWeight = FontWeight.Bold,
@@ -163,7 +341,7 @@ fun NeuroLabScreen(
                             colorOption = allColors[0],
                             modifier = Modifier.weight(1f)
                         ) {
-                            handleColorChoice(allColors[0], engine, scope) { correct, finished ->
+                            handleStroopChoice(allColors[0], engine) { correct, finished ->
                                 feedbackColor = if (correct) Color(0xFF43A047) else Color(0xFFE53935)
                                 currentTrial = engine.currentTrial()
                                 completedCount = engine.completedTrialsCount()
@@ -174,7 +352,7 @@ fun NeuroLabScreen(
                             colorOption = allColors[1],
                             modifier = Modifier.weight(1f)
                         ) {
-                            handleColorChoice(allColors[1], engine, scope) { correct, finished ->
+                            handleStroopChoice(allColors[1], engine) { correct, finished ->
                                 feedbackColor = if (correct) Color(0xFF43A047) else Color(0xFFE53935)
                                 currentTrial = engine.currentTrial()
                                 completedCount = engine.completedTrialsCount()
@@ -190,7 +368,7 @@ fun NeuroLabScreen(
                             colorOption = allColors[2],
                             modifier = Modifier.weight(1f)
                         ) {
-                            handleColorChoice(allColors[2], engine, scope) { correct, finished ->
+                            handleStroopChoice(allColors[2], engine) { correct, finished ->
                                 feedbackColor = if (correct) Color(0xFF43A047) else Color(0xFFE53935)
                                 currentTrial = engine.currentTrial()
                                 completedCount = engine.completedTrialsCount()
@@ -201,7 +379,7 @@ fun NeuroLabScreen(
                             colorOption = allColors[3],
                             modifier = Modifier.weight(1f)
                         ) {
-                            handleColorChoice(allColors[3], engine, scope) { correct, finished ->
+                            handleStroopChoice(allColors[3], engine) { correct, finished ->
                                 feedbackColor = if (correct) Color(0xFF43A047) else Color(0xFFE53935)
                                 currentTrial = engine.currentTrial()
                                 completedCount = engine.completedTrialsCount()
@@ -254,7 +432,7 @@ fun NeuroLabScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = { onDrillComplete(engine.accuracyPercent()) },
+                        onClick = { onComplete(engine.accuracyPercent()) },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                         modifier = Modifier.fillMaxWidth()
@@ -292,10 +470,9 @@ private fun ColorChoiceButton(
     }
 }
 
-private fun handleColorChoice(
+private fun handleStroopChoice(
     color: StroopColor,
     engine: StroopEngine,
-    scope: kotlinx.coroutines.CoroutineScope,
     onUpdated: (correct: Boolean, isFinished: Boolean) -> Unit
 ) {
     val correct = engine.submitAnswer(color, timestampMillis = System.currentTimeMillis())
