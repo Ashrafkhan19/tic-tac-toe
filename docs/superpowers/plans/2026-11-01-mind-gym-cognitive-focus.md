@@ -1,6 +1,6 @@
 # Mind Gym Cognitive Focus Suite Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Transform the existing multiplatform app into **Mind Gym**, a clinically and neurobiologically grounded cognitive training suite that breaks short-form video doomscrolling reflexes through urge-surfing breathwork, Neuro Lab drills (Stroop & 2-back), paginated deep reading with active recall, deep work focus timers, daily sleep/movement foundation logging, and strategic board game workouts.
 
@@ -39,7 +39,7 @@
 - Consumes: `PlayerProgress`, `StreakRules` from `core/src/commonMain/kotlin/com/example/tictactoe/domain/progress/`
 - Produces: `FocusSessionType`, `FocusSessionResult`, `DailyCircuitState`, `FocusXpRules`, updated `PlayerProgress`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 // core/src/commonTest/kotlin/com/example/tictactoe/domain/focus/FocusDomainTest.kt
@@ -88,12 +88,12 @@ class FocusDomainTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :core:jvmTest --no-daemon`
 Expected: FAIL with compilation errors (`Unresolved reference: focus`).
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `core/src/commonMain/kotlin/com/example/tictactoe/domain/focus/FocusModels.kt`:
 ```kotlin
@@ -145,12 +145,12 @@ Add default parameters `totalFocusMinutes: Int = 0`, `urgesSurfedCount: Int = 0`
 
 Update `SettingsProgressRepository.kt` to serialize/deserialize these fields with fallback defaults.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :core:jvmTest --no-daemon`
 Expected: BUILD SUCCESSFUL and tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/focus/FocusModels.kt \
@@ -172,7 +172,7 @@ git commit -m "feat(core): add cognitive focus models, XP rules, and progress pr
 - Consumes: Standard Kotlin random & collections
 - Produces: `StroopColor`, `StroopTrial`, `StroopEngine`, `NBackEngine`, `DrillResult`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 // core/src/commonTest/kotlin/com/example/tictactoe/domain/focus/NeuroLabEngineTest.kt
@@ -222,12 +222,12 @@ class NeuroLabEngineTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :core:jvmTest --no-daemon`
 Expected: FAIL with unresolved `StroopEngine`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `core/src/commonMain/kotlin/com/example/tictactoe/domain/focus/NeuroLabEngine.kt`:
 ```kotlin
@@ -304,12 +304,12 @@ class NBackEngine(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :core:jvmTest --no-daemon`
 Expected: BUILD SUCCESSFUL and all tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/focus/NeuroLabEngine.kt \
@@ -329,7 +329,7 @@ git commit -m "feat(core): add Stroop and N-Back cognitive drill engines"
 - Consumes: `ReadingArticle`, `RecallQuestion`
 - Produces: `ReadingRepository`, curated articles, quiz evaluation methods
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 // core/src/commonTest/kotlin/com/example/tictactoe/domain/focus/ReadingRepositoryTest.kt
@@ -374,12 +374,12 @@ class ReadingRepositoryTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :core:jvmTest --no-daemon`
 Expected: FAIL with `Unresolved reference: ReadingRepository`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 Create `core/src/commonMain/kotlin/com/example/tictactoe/domain/focus/ReadingRepository.kt`:
 ```kotlin
@@ -483,12 +483,12 @@ class ReadingRepository {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :core:jvmTest --no-daemon`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add core/src/commonMain/kotlin/com/example/tictactoe/domain/focus/ReadingRepository.kt \
@@ -509,15 +509,15 @@ git commit -m "feat(core): add deep reading repository with active recall evalua
 - Consumes: `FocusXpRules.xpForUrgeSurfed()`
 - Produces: `UrgeSurferScreen(onFinished: (xpAwarded: Int) -> Unit, onDismiss: () -> Unit)`
 
-- [ ] **Step 1: Write the failing test / compile check**
+- [x] **Step 1: Write the failing test / compile check**
 
 Verify target composable imports exist and file compiles.
 
-- [ ] **Step 2: Run compile check to verify missing symbol**
+- [x] **Step 2: Run compile check to verify missing symbol**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :app:shared:compileKotlinJvm --no-daemon`
 
-- [ ] **Step 3: Implement `UrgeSurferScreen`**
+- [x] **Step 3: Implement `UrgeSurferScreen`**
 
 Create `app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/UrgeSurferScreen.kt`:
 - Infinite transition animating circle scale between 1.0f (deflate) $\to$ 1.8f (inhale 1) $\to$ 2.2f (inhale 2 top-off) $\to$ 1.0f (exhale).
@@ -525,12 +525,12 @@ Create `app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/UrgeSurf
 - 60-second countdown timer.
 - "Urge Surfed (+20 XP)" button enabling after 60 seconds or dismissible anytime without error.
 
-- [ ] **Step 4: Verify compilation**
+- [x] **Step 4: Verify compilation**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :app:shared:compileKotlinJvm --no-daemon`
 Expected: BUILD SUCCESSFUL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/UrgeSurferScreen.kt
@@ -549,9 +549,9 @@ git commit -m "feat(ui): add Urge Surfer physiological sigh breathwork canvas"
 - Consumes: `StroopEngine`, `StroopColor`, `StroopTrial`
 - Produces: `NeuroLabScreen(onDrillComplete: (scorePercent: Int) -> Unit, onBack: () -> Unit)`
 
-- [ ] **Step 1: Create failing compile check**
-- [ ] **Step 2: Verify compile failure**
-- [ ] **Step 3: Implement `NeuroLabScreen`**
+- [x] **Step 1: Create failing compile check**
+- [x] **Step 2: Verify compile failure**
+- [x] **Step 3: Implement `NeuroLabScreen`**
 
 Features:
 - Large centered word rendered in contrasting color.
@@ -560,12 +560,12 @@ Features:
 - Progress indicator: Trial X of 30.
 - Summary dialog on completion showing Accuracy % and XP awarded.
 
-- [ ] **Step 4: Verify compilation**
+- [x] **Step 4: Verify compilation**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :app:shared:compileKotlinJvm --no-daemon`
 Expected: BUILD SUCCESSFUL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/NeuroLabScreen.kt
@@ -584,9 +584,9 @@ git commit -m "feat(ui): add Neuro Lab Stroop test interactive drill screen"
 - Consumes: `ReadingRepository`, `ReadingArticle`, `FocusXpRules`
 - Produces: `ReadingSanctuaryScreen(onArticleFinished: (articleId: String, scorePercent: Int) -> Unit, onBack: () -> Unit)`
 
-- [ ] **Step 1: Create failing compile check**
-- [ ] **Step 2: Verify compile failure**
-- [ ] **Step 3: Implement `ReadingSanctuaryScreen`**
+- [x] **Step 1: Create failing compile check**
+- [x] **Step 2: Verify compile failure**
+- [x] **Step 3: Implement `ReadingSanctuaryScreen`**
 
 Features:
 - Article selection list.
@@ -595,12 +595,12 @@ Features:
 - Upon reaching the final page, transforms into the Active Recall Quiz view with selectable multiple-choice answers.
 - Calculates score %, awards XP, and calls `onArticleFinished`.
 
-- [ ] **Step 4: Verify compilation**
+- [x] **Step 4: Verify compilation**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :app:shared:compileKotlinJvm --no-daemon`
 Expected: BUILD SUCCESSFUL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/ReadingSanctuaryScreen.kt
@@ -619,9 +619,9 @@ git commit -m "feat(ui): add paginated Reading Sanctuary and active recall quiz 
 - Consumes: Coroutine delay or ticker, `FocusXpRules.xpForFocusSession()`
 - Produces: `FocusTimerScreen(onSessionComplete: (durationMinutes: Int, distractions: Int) -> Unit, onBack: () -> Unit)`
 
-- [ ] **Step 1: Create failing compile check**
-- [ ] **Step 2: Verify compile failure**
-- [ ] **Step 3: Implement `FocusTimerScreen`**
+- [x] **Step 1: Create failing compile check**
+- [x] **Step 2: Verify compile failure**
+- [x] **Step 3: Implement `FocusTimerScreen`**
 
 Features:
 - Circular progress timer with remaining minutes and seconds.
@@ -630,12 +630,12 @@ Features:
 - **"+1 Distraction Urge" button:** Increments counter with gentle toast: *"Awareness logged. Breathe and return to your focus."*
 - Session complete dialog calculating net Focus XP.
 
-- [ ] **Step 4: Verify compilation**
+- [x] **Step 4: Verify compilation**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :app:shared:compileKotlinJvm --no-daemon`
 Expected: BUILD SUCCESSFUL.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/FocusTimerScreen.kt
@@ -656,7 +656,7 @@ git commit -m "feat(ui): add Deep Work focus timer with distraction logging"
 - Consumes: All focus screens, existing `GameScreen`, `PlayerProgress`, `SettingsProgressRepository`
 - Produces: Unified `GymScreen` featuring Daily Foundations, Daily Circuit, SOS Urge button, and Open Gym navigation.
 
-- [ ] **Step 1: Implement `GymScreen`**
+- [x] **Step 1: Implement `GymScreen`**
   - **Header:** Streak flame counter, Focus Level & Total XP.
   - **SOS Banner:** *"🚨 Craving a scroll? Tap to surf the urge (60s)"* -> opens `UrgeSurferScreen`.
   - **Daily Foundations Section:**
@@ -673,16 +673,16 @@ git commit -m "feat(ui): add Deep Work focus timer with distraction logging"
     - 📖 Deep Reading -> Launches Reading Sanctuary.
     - ⏱️ Focus Timer -> Launches Deep Work Timer.
 
-- [ ] **Step 2: Update `App.kt` and `AppContainer.kt`**
+- [x] **Step 2: Update `App.kt` and `AppContainer.kt`**
   - Wire `ReadingRepository` and `DailyCircuitState` into `AppContainer`.
   - Add navigation state in `App.kt` to switch between `GymScreen` (default home), `GameScreen` (Strategic Gym), and individual focus drill screens.
 
-- [ ] **Step 3: Run full verification suite**
+- [x] **Step 3: Run full verification suite**
 
 Run: `export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home && ./gradlew :core:jvmTest :app:shared:compileKotlinJvm --no-daemon`
 Expected: ALL PASS with zero errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/GymScreen.kt \
@@ -690,3 +690,4 @@ git add app/shared/src/commonMain/kotlin/com/example/tictactoe/ui/focus/GymScree
         app/shared/src/commonMain/kotlin/com/example/tictactoe/di/AppContainer.kt
 git commit -m "feat(ui): integrate Mind Gym Floor hub with Daily Circuit and Foundations"
 ```
+
