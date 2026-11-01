@@ -41,3 +41,4 @@ class FocusDomainTest {
         assertEquals(0, progress.movementLogsCount)
     }
 }
+

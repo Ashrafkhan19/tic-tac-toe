@@ -39,3 +39,4 @@ object FocusXpRules {
     }
     fun xpForDailyFoundation(): Int = 15
 }
+

@@ -96,3 +96,4 @@ class ReadingRepository {
         return (correct * 100) / article.questions.size
     }
 }
+

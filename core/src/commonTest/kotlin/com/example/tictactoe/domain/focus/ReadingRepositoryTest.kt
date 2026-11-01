@@ -37,3 +37,4 @@ class ReadingRepositoryTest {
         assertEquals(0, score)
     }
 }
+
