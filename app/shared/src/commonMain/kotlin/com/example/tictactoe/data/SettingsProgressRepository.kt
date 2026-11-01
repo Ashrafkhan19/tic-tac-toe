@@ -74,6 +74,11 @@ class SettingsProgressRepository(
             val circuitsCompletedCount = int(o, "circuitsCompletedCount") ?: defaults.circuitsCompletedCount
             val sleepLogsCount = int(o, "sleepLogsCount") ?: defaults.sleepLogsCount
             val movementLogsCount = int(o, "movementLogsCount") ?: defaults.movementLogsCount
+            val bestReactionMs = (int(o, "bestReactionMs")?.toLong()) ?: defaults.bestReactionMs
+            val bestSpatialSpan = int(o, "bestSpatialSpan") ?: defaults.bestSpatialSpan
+            val bestInhibitionPercent = int(o, "bestInhibitionPercent") ?: defaults.bestInhibitionPercent
+            val bestFlexibilitySeconds = defaults.bestFlexibilitySeconds
+            val bestMathPerMinute = int(o, "bestMathPerMinute") ?: defaults.bestMathPerMinute
             return PlayerProgress(
                 version = version,
                 xp = xp,
@@ -84,6 +89,11 @@ class SettingsProgressRepository(
                 circuitsCompletedCount = circuitsCompletedCount,
                 sleepLogsCount = sleepLogsCount,
                 movementLogsCount = movementLogsCount,
+                bestReactionMs = bestReactionMs,
+                bestSpatialSpan = bestSpatialSpan,
+                bestInhibitionPercent = bestInhibitionPercent,
+                bestFlexibilitySeconds = bestFlexibilitySeconds,
+                bestMathPerMinute = bestMathPerMinute,
             )
         }
 

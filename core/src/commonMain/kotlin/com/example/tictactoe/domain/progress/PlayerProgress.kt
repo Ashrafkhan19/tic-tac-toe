@@ -36,6 +36,11 @@ data class PlayerProgress(
     val circuitsCompletedCount: Int = 0,
     val sleepLogsCount: Int = 0,
     val movementLogsCount: Int = 0,
+    val bestReactionMs: Long = 0L,
+    val bestSpatialSpan: Int = 0,
+    val bestInhibitionPercent: Int = 0,
+    val bestFlexibilitySeconds: Double = 0.0,
+    val bestMathPerMinute: Int = 0,
 ) {
     /** Backwards-compatibility computed view of classic 3x3 stats. */
     val stats: Map<Difficulty, DifficultyStats>

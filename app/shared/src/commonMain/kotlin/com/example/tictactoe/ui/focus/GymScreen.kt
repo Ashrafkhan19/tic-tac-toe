@@ -53,6 +53,7 @@ fun GymScreen(
     onOpenFocusTimer: () -> Unit,
     onOpenStrategyGame: () -> Unit,
     onOpenSomaticReset: () -> Unit,
+    onOpenAnalytics: () -> Unit,
     onToggleSleepFoundation: () -> Unit,
     onToggleMovementFoundation: () -> Unit
 ) {
@@ -108,6 +109,43 @@ fun GymScreen(
                         bgColor = colors.primary.copy(alpha = 0.18f),
                         textColor = colors.primary
                     )
+                }
+            }
+
+            // Cognitive Analytics & Percentile Banner
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenAnalytics() }
+                    .border(1.dp, colors.primary.copy(alpha = 0.4f), RoundedCornerShape(14.dp)),
+                colors = CardDefaults.cardColors(containerColor = colors.primary.copy(alpha = 0.08f)),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text("📊", fontSize = 22.sp)
+                        Column {
+                            Text(
+                                text = "Cognitive Analytics & Percentile Radar",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = colors.primary
+                            )
+                            Text(
+                                text = "See how your brain performance compares to population norms",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = colors.muted
+                            )
+                        }
+                    }
+                    Text("View →", color = colors.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
 

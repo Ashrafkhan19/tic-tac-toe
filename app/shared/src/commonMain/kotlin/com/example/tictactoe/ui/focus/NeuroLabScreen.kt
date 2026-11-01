@@ -46,12 +46,20 @@ enum class NeuroDrillType {
     STROOP,
     GO_NO_GO,
     N_BACK,
-    CORSI_BLOCK
+    CORSI_BLOCK,
+    TRAIL_MAKING,
+    SPEED_MATH,
+    BACKWARD_SPAN,
+    MATRIX_LOGIC
 }
 
 @Composable
 fun NeuroLabScreen(
     onDrillComplete: (scorePercent: Int) -> Unit,
+    onRecordReactionTime: (ms: Long) -> Unit = {},
+    onRecordSpatialSpan: (span: Int) -> Unit = {},
+    onRecordFlexibility: (seconds: Double) -> Unit = {},
+    onRecordMathSpeed: (opsPerMinute: Int) -> Unit = {},
     onBack: () -> Unit
 ) {
     var activeDrill by remember { mutableStateOf(NeuroDrillType.MENU) }
@@ -71,7 +79,9 @@ fun NeuroLabScreen(
         }
         NeuroDrillType.GO_NO_GO -> {
             GoNoGoDrillScreen(
-                onComplete = onDrillComplete,
+                onComplete = { score ->
+                    onDrillComplete(score)
+                },
                 onBack = { activeDrill = NeuroDrillType.MENU }
             )
         }
@@ -84,10 +94,46 @@ fun NeuroLabScreen(
         NeuroDrillType.CORSI_BLOCK -> {
             CorsiBlockScreen(
                 onComplete = { span ->
-                    // Convert span to score percent (e.g. span 6 -> 85%)
+                    onRecordSpatialSpan(span)
                     val scorePercent = (span * 15).coerceIn(40, 100)
                     onDrillComplete(scorePercent)
                 },
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.TRAIL_MAKING -> {
+            TrailMakingScreen(
+                onComplete = { timeSeconds ->
+                    onRecordFlexibility(timeSeconds)
+                    val scorePercent = ((40.0 - timeSeconds) * 3).toInt().coerceIn(40, 100)
+                    onDrillComplete(scorePercent)
+                },
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.SPEED_MATH -> {
+            SpeedMathScreen(
+                onComplete = { opsPerMin ->
+                    onRecordMathSpeed(opsPerMin)
+                    val scorePercent = (opsPerMin * 5).coerceIn(40, 100)
+                    onDrillComplete(scorePercent)
+                },
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.BACKWARD_SPAN -> {
+            BackwardSpanScreen(
+                onComplete = { span ->
+                    onRecordSpatialSpan(span)
+                    val scorePercent = (span * 16).coerceIn(40, 100)
+                    onDrillComplete(scorePercent)
+                },
+                onBack = { activeDrill = NeuroDrillType.MENU }
+            )
+        }
+        NeuroDrillType.MATRIX_LOGIC -> {
+            MatrixLogicScreen(
+                onComplete = onDrillComplete,
                 onBack = { activeDrill = NeuroDrillType.MENU }
             )
         }
@@ -172,6 +218,38 @@ private fun NeuroLabMenuView(
                         title = "Corsi Block Spatial Span",
                         desc = "Recall and reproduce expanding sequences of spatial coordinates to strengthen hippocampal memory.",
                         onClick = { onSelectDrill(NeuroDrillType.CORSI_BLOCK) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "🔄",
+                        title = "Trail Making (1 ➔ A ➔ 2 ➔ B)",
+                        desc = "Executive cognitive shifting. Rapidly alternate between numbers and letters under pressure.",
+                        onClick = { onSelectDrill(NeuroDrillType.TRAIL_MAKING) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "🧮",
+                        title = "Speed Arithmetic Flow",
+                        desc = "60-second mental math sprint to boost calculation speed and working memory bandwidth.",
+                        onClick = { onSelectDrill(NeuroDrillType.SPEED_MATH) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "⏪",
+                        title = "Backward Memory Span",
+                        desc = "Recall sequences in reverse order. Directly exercises active working memory manipulation.",
+                        onClick = { onSelectDrill(NeuroDrillType.BACKWARD_SPAN) }
+                    )
+                }
+                item {
+                    DrillMenuCard(
+                        icon = "🧩",
+                        title = "Visual Matrix Reasoning",
+                        desc = "Raven's matrices abstract puzzle solving to test and strengthen non-verbal fluid logic.",
+                        onClick = { onSelectDrill(NeuroDrillType.MATRIX_LOGIC) }
                     )
                 }
             }

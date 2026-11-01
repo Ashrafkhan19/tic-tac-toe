@@ -25,6 +25,7 @@ import com.example.tictactoe.domain.focus.DailyCircuitState
 import com.example.tictactoe.domain.focus.FocusXpRules
 import com.example.tictactoe.presentation.Intent
 import com.example.tictactoe.ui.GameContent
+import com.example.tictactoe.ui.focus.CognitiveAnalyticsScreen
 import com.example.tictactoe.ui.focus.FocusTimerScreen
 import com.example.tictactoe.ui.focus.GymScreen
 import com.example.tictactoe.ui.focus.NeuroLabScreen
@@ -41,7 +42,8 @@ enum class ScreenRoute {
     DEEP_READING,
     FOCUS_TIMER,
     STRATEGY_GAME,
-    SOMATIC_RESET
+    SOMATIC_RESET,
+    ANALYTICS
 }
 
 @Composable
@@ -63,6 +65,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                         onOpenFocusTimer = { currentRoute = ScreenRoute.FOCUS_TIMER },
                         onOpenStrategyGame = { currentRoute = ScreenRoute.STRATEGY_GAME },
                         onOpenSomaticReset = { currentRoute = ScreenRoute.SOMATIC_RESET },
+                        onOpenAnalytics = { currentRoute = ScreenRoute.ANALYTICS },
                         onToggleSleepFoundation = {
                             val nextState = !dailyCircuit.sleepLogged
                             dailyCircuit = dailyCircuit.copy(sleepLogged = nextState)
@@ -108,11 +111,44 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                     NeuroLabScreen(
                         onDrillComplete = { score ->
                             val xp = if (score >= 80) 35 else 20
-                            val updated = playerProgress.copy(xp = playerProgress.xp + xp)
+                            val updated = playerProgress.copy(
+                                xp = playerProgress.xp + xp,
+                                bestInhibitionPercent = maxOf(playerProgress.bestInhibitionPercent, score)
+                            )
                             container.progressRepository.save(updated)
                             playerProgress = updated
                             dailyCircuit = dailyCircuit.copy(neuroDrillCompleted = true)
                             currentRoute = ScreenRoute.GYM
+                        },
+                        onRecordReactionTime = { ms ->
+                            val currentBest = playerProgress.bestReactionMs
+                            if (currentBest == 0L || ms < currentBest) {
+                                val updated = playerProgress.copy(bestReactionMs = ms)
+                                container.progressRepository.save(updated)
+                                playerProgress = updated
+                            }
+                        },
+                        onRecordSpatialSpan = { span ->
+                            if (span > playerProgress.bestSpatialSpan) {
+                                val updated = playerProgress.copy(bestSpatialSpan = span)
+                                container.progressRepository.save(updated)
+                                playerProgress = updated
+                            }
+                        },
+                        onRecordFlexibility = { timeSec ->
+                            val currentBest = playerProgress.bestFlexibilitySeconds
+                            if (currentBest == 0.0 || timeSec < currentBest) {
+                                val updated = playerProgress.copy(bestFlexibilitySeconds = timeSec)
+                                container.progressRepository.save(updated)
+                                playerProgress = updated
+                            }
+                        },
+                        onRecordMathSpeed = { ops ->
+                            if (ops > playerProgress.bestMathPerMinute) {
+                                val updated = playerProgress.copy(bestMathPerMinute = ops)
+                                container.progressRepository.save(updated)
+                                playerProgress = updated
+                            }
                         },
                         onBack = { currentRoute = ScreenRoute.GYM }
                     )
@@ -167,6 +203,12 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                             currentRoute = ScreenRoute.GYM
                         },
                         onDismiss = { currentRoute = ScreenRoute.GYM }
+                    )
+                }
+                ScreenRoute.ANALYTICS -> {
+                    CognitiveAnalyticsScreen(
+                        progress = playerProgress,
+                        onBack = { currentRoute = ScreenRoute.GYM }
                     )
                 }
             }
