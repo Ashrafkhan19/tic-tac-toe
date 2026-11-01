@@ -1,21 +1,45 @@
 # Mind Gym: Cognitive Focus & Anti-Dopamine Training Design Spec
 
 ## Intent & Overview
-Continuous short-form video consumption (Reels, TikTok, Shorts) conditions the brain to expect instant dopamine rewards every 10–30 seconds. This results in attentional fragmentation, reduced cognitive stamina for low-stimulation tasks, and mental fatigue ("brain rot").
+Continuous short-form video consumption (Reels, TikTok, Shorts) conditions the human brain to expect instant dopamine rewards every 10–30 seconds. This results in attentional fragmentation, reduced cognitive stamina for low-stimulation tasks, and chronic mental fatigue ("brain rot").
 
-This project evolves the existing Tic-Tac-Toe multiplatform codebase into **Mind Gym**, a calm cognitive training suite designed to break compulsive doomscrolling reflexes and rebuild sustained attention:
-1. **Urge Surfer (Instant SOS):** A 60-second guided physiological reset to interrupt compulsive social media reaching habits.
-2. **Neuro Lab:** Executive function drills—Stroop inhibitory control and sustained working memory.
-3. **Deep Reading Sanctuary:** Distraction-free, scroll-free paginated long-form reading with active recall checks.
-4. **Deep Work Sanctuary:** Distraction-logging focus timer with calm ambient audio.
-5. **Strategic Gym:** The existing Tic-Tac-Toe engine (Classic 3×3, 4×4, 5×5, and Ultimate Tic-Tac-Toe) repurposed as working-memory and forward-planning training.
-6. **Daily Focus Circuit:** A 10–12 minute guided daily workout tying all exercises into the app's persistent streak and XP engine.
+This project evolves the existing Tic-Tac-Toe multiplatform codebase into **Mind Gym**, a clinically and neurobiologically grounded cognitive training suite designed to break compulsive doomscrolling reflexes, optimize brain-body recovery, and rebuild sustained attention:
+1. **Scientific Foundations:** Every module is anchored in peer-reviewed neuroscience literature (2023–2024).
+2. **Urge Surfer (Instant SOS):** A 60-second guided physiological reset to down-regulate autonomic dopamine cravings.
+3. **Neuro Lab:** Executive function drills—Stroop inhibitory control and 2-back working memory.
+4. **Deep Reading Sanctuary:** Distraction-free, scroll-free paginated long-form reading with active recall checks.
+5. **Deep Work Sanctuary:** Distraction-logging focus timer with calm ambient audio.
+6. **Strategic Gym:** The existing Tic-Tac-Toe engine (Classic 3×3, 4×4, 5×5, and Ultimate Tic-Tac-Toe) repurposed as working-memory and forward-planning training.
+7. **Body & Brain Foundations (Sleep & Movement):** Daily tracking of Slow-Wave Sleep quality and aerobic BDNF priming.
+8. **Daily Focus Circuit:** A 10–12 minute guided daily workout tying all exercises into the app's persistent streak and XP engine.
+
+---
+
+## Scientific Foundations & Research Backing (2023–2024)
+
+### 1. Attentional Fragmentation & Short-Form Video (The "Brain Rot" Mechanism)
+* **Yan et al. (2024, *Frontiers in Human Neuroscience*):** *"Mobile phone short video use negatively impacts attention functions: An EEG study."* Demonstrated that heavy short-form video consumption significantly diminishes frontal theta wave power during executive control tasks, impairing neural efficiency in the prefrontal cortex.
+* **Chen et al. (2023):** Eye-tracking and Stroop behavioral analysis showed that short-video dependence directly impairs inhibitory control and causes visual fragmentation (shorter fixation durations and erratic eye darting).
+* **Stanford Digital Repository (2024):** High-frequency short-video use correlates with elevated reaction time variability (the clinical biomarker for attentional micro-lapses) and degraded working memory recall.
+
+### 2. Autonomic Down-Regulation (Urge Surfing)
+* **Balban, Huberman et al. (2023, *Cell Reports Medicine*):** *"Brief structured respiration practices enhance mood and reduce physiological arousal."* A randomized controlled trial of 108 subjects proved that cyclic sighing (two nasal inhales followed by one slow oral exhale) for 5 minutes significantly outperforms mindfulness meditation in rapidly lowering autonomic arousal, reducing heart rate, and restoring calm alertness.
+
+### 3. Text Processing & Active Recall (Deep Reading)
+* **Altamura, Salmerón et al. (2023/2024, *Review of Educational Research* & *J. Educ. Psych.*):** Meta-analysis of 470,000+ individuals establishing the "Screen Inferiority Effect". Continuous vertical scrolling induces cognitive overload and destroys spatial mental mapping of text, resulting in shallow skimming. Static, paginated reading preserved deep narrative retention.
+* **Roediger & Karpicke (Testing Effect):** Active recall / retrieval practice immediately following reading yields up to a 50% increase in long-term memory consolidation compared to passive rereading.
+
+### 4. Sleep & Memory Consolidation (The Foundation)
+* **Nature Communications & Frontiers in Neuroscience (2023–2024):** Slow-Wave Sleep (SWS) orchestrates temporal coupling between cortical slow oscillations (<1 Hz), thalamocortical sleep spindles (11–16 Hz), and hippocampal sharp-wave ripples. This physical coupling replays daytime memories and transfers them to the permanent neocortex while glymphatic channels flush metabolic waste from the prefrontal cortex.
+
+### 5. Aerobic Exercise & Neurogenesis (BDNF)
+* **Ye et al. (2024, *Frontiers in Neuroscience*):** Aerobic exercise triggers systemic release of Brain-Derived Neurotrophic Factor (BDNF), VEGF, and IGF-1, stimulating neurogenesis and synaptic plasticity in the hippocampus and prefrontal cortex. A 20-minute moderate aerobic session immediately enhances cognitive flexibility, processing speed, and working memory capacity for the next 2–3 hours.
 
 ---
 
 ## Information Architecture & Navigation
 
-The app introduces a central **Mind Gym Hub** (`GymScreen`) with four main tabs:
+The app introduces a central **Mind Gym Hub** (`GymScreen`) with unified multi-tab navigation:
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -23,6 +47,9 @@ The app introduces a central **Mind Gym Hub** (`GymScreen`) with four main tabs:
 │   [ 🔥 Streak: 5 Days ]     [ ⚡ Focus XP: 1,420 ]          │
 ├─────────────────────────────────────────────────────────────┤
 │   [ 🚨 SURF AN URGE (60s RESET) ]                           │
+├─────────────────────────────────────────────────────────────┤
+│   DAILY FOUNDATIONS (BODY & BRAIN)                          │
+│   [ 😴 7-8h Sleep: ✓ ]       [ 🏃 20m Movement: + Log ]    │
 ├─────────────────────────────────────────────────────────────┤
 │   TODAY'S FOCUS CIRCUIT                                     │
 │   ┌─────────────────────────────────────────────────────┐   │
@@ -39,7 +66,7 @@ The app introduces a central **Mind Gym Hub** (`GymScreen`) with four main tabs:
 ```
 
 ### Screen Flow & State
-* **`GymScreen` (Home Floor):** Daily circuit hero card, immediate SOS button, and grid cards for open gym modules.
+* **`GymScreen` (Home Floor):** Daily Foundations checklist, Daily Circuit hero card, immediate SOS button, and grid cards for open gym modules.
 * **`UrgeSurferScreen`:** Fullscreen modal with animated dual-inhale/exhale breathing canvas and grounding prompts.
 * **`NeuroLabScreen`:** Selection between **Stroop Inhibitory Drill** and **Visual 2-Back Vigilance Drill**.
 * **`ReadingSanctuaryScreen`:** E-reader style horizontal page flip with active comprehension questions upon completion.
@@ -85,7 +112,13 @@ The app introduces a central **Mind Gym Hub** (`GymScreen`) with four main tabs:
 * **Ambient Audio:**
   * Built-in generative audio synthesis or looped offline assets: Brown Noise, Soft Rain, 40Hz Isochronic Tone, or Silence.
 
-### 5. Daily Focus Circuit
+### 5. Daily Foundations (Sleep & Movement Tracker)
+* Two quick habit toggles on the Gym Floor:
+  * 😴 **Sleep Optimization:** Toggles whether 7–8 hours of quality sleep was attained (+15 XP).
+  * 🏃 **Movement & BDNF Priming:** Toggles whether 20+ minutes of aerobic activity or physical exercise was completed (+15 XP).
+* Includes scientific rationale pop-ups explaining how sleep consolidates memory schemas and how exercise elevates neurotrophic factors (BDNF).
+
+### 6. Daily Focus Circuit
 * **Daily Sequence:**
   1. 1 min Urge Surfer / Breathing Warmup
   2. 3 min Neuro Drill (Stroop or 2-Back)
@@ -132,9 +165,11 @@ data class RecallQuestion(
 
 data class DailyCircuitState(
     val dateIso: String,
-    val urgeWarmupCompleted: Boolean,
-    val neuroDrillCompleted: Boolean,
-    val deepActivityCompleted: Boolean
+    val urgeWarmupCompleted: Boolean = false,
+    val neuroDrillCompleted: Boolean = false,
+    val deepActivityCompleted: Boolean = false,
+    val sleepLogged: Boolean = false,
+    val movementLogged: Boolean = false
 ) {
     val isComplete: Boolean get() = urgeWarmupCompleted && neuroDrillCompleted && deepActivityCompleted
 }
@@ -145,6 +180,8 @@ data class DailyCircuitState(
 * Add `totalFocusMinutes: Int = 0`
 * Add `urgesSurfedCount: Int = 0`
 * Add `circuitsCompletedCount: Int = 0`
+* Add `sleepLogsCount: Int = 0`
+* Add `movementLogsCount: Int = 0`
 * Completing a Daily Circuit or winning a Tic-Tac-Toe match both feed the unified `StreakRules` and `XpRules`.
 
 ---
@@ -169,6 +206,7 @@ data class DailyCircuitState(
 * `NeuroLabScreen` featuring Stroop Color interference drill and scoring.
 * `ReadingSanctuaryScreen` with paginated reader and active recall quiz.
 * `FocusTimerScreen` with countdown and distraction logging.
+* Daily Foundations (Sleep & Movement) toggles and scientific insights.
 * Integration of the existing Tic-Tac-Toe variants into the Strategic Gym module.
 * XP and Streak rewards for all cognitive sessions.
 
