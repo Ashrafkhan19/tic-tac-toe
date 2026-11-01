@@ -14,8 +14,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
@@ -152,36 +154,42 @@ fun VariantBadge(
 ) {
     val colors = LocalGameColors.current
     val shape = RoundedCornerShape(50)
-    Row(
+    Box(
         modifier = modifier
-            .clip(shape)
-            .background(colors.panel)
-            .border(
-                1.dp,
-                if (enabled) colors.primary.copy(alpha = 0.5f) else colors.panelBorder,
-                shape,
-            )
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
             .clickable(
                 enabled = enabled,
                 role = Role.Button,
                 onClickLabel = "Change variant",
                 onClick = onClick,
-            )
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = variant.displayName,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = if (enabled) colors.primary else colors.muted,
-        )
-        if (enabled) {
+        Row(
+            modifier = Modifier
+                .clip(shape)
+                .background(colors.panel)
+                .border(
+                    1.dp,
+                    if (enabled) colors.primary.copy(alpha = 0.5f) else colors.panelBorder,
+                    shape,
+                )
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             Text(
-                text = "▾",
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.primary,
+                text = variant.displayName,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = if (enabled) colors.primary else colors.muted,
             )
+            if (enabled) {
+                Text(
+                    text = "▾",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.primary,
+                )
+            }
         }
     }
 }
