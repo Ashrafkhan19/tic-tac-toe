@@ -1,6 +1,7 @@
 package com.example.tictactoe.ads
 
 import android.app.Activity
+import android.os.SystemClock
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
@@ -16,8 +17,8 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 class AndroidAdsManager(
-    private val activityProvider: () -> Activity?,
-    currentTimeProvider: () -> Long = { System.currentTimeMillis() },
+    private var activityProvider: () -> Activity? = { null },
+    currentTimeProvider: () -> Long = { SystemClock.elapsedRealtime() },
 ) : AdsManager {
     constructor(activity: Activity) : this({ activity })
 
@@ -34,6 +35,19 @@ class AndroidAdsManager(
 
     init {
         loadInterstitial()
+    }
+
+    fun setActivity(activity: Activity?) {
+        this.activityProvider = { activity }
+        if (activity != null && interstitialAd == null) {
+            loadInterstitial()
+        }
+    }
+
+    fun clearActivity(activity: Activity? = null) {
+        if (activity == null || activityProvider() === activity) {
+            this.activityProvider = { null }
+        }
     }
 
     @Composable
@@ -60,13 +74,15 @@ class AndroidAdsManager(
     }
 
     override fun canShowInterstitial(): Boolean {
-        return policy.canShowInterstitial() && interstitialAd != null
+        val activity = activityProvider()
+        val isActivityValid = activity != null && !activity.isFinishing && !activity.isDestroyed
+        return policy.canShowInterstitial() && interstitialAd != null && isActivityValid
     }
 
     override fun showInterstitialIfReady(onDismiss: () -> Unit) {
         val activity = activityProvider()
         val ad = interstitialAd
-        if (activity != null && ad != null && policy.canShowInterstitial()) {
+        if (activity != null && !activity.isFinishing && !activity.isDestroyed && ad != null && policy.canShowInterstitial()) {
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
                     interstitialAd = null
@@ -96,6 +112,7 @@ class AndroidAdsManager(
 
     override fun loadInterstitial() {
         val activity = activityProvider() ?: return
+        if (activity.isFinishing || activity.isDestroyed) return
         if (isLoadingInterstitial || interstitialAd != null) return
 
         isLoadingInterstitial = true

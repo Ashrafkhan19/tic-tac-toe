@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.widthIn
@@ -23,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,6 +97,18 @@ internal fun createAdInterceptingIntentHandler(
     }
 }
 
+internal fun computeCompletedOutcomeKey(
+    variant: GameVariant,
+    xWins: Int,
+    oWins: Int,
+    draws: Int,
+    outcome: Outcome,
+): String? = if (outcome is Outcome.Won || outcome == Outcome.Draw) {
+    "$variant-$xWins-$oWins-$draws-$outcome"
+} else {
+    null
+}
+
 /** Plain, previewable screen: immutable state in, intents out. Adapts between a stacked and a side-by-side layout. */
 @Composable
 internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = Modifier) {
@@ -103,9 +117,23 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
     val outcome = ui.currentOutcome
     val vsCpu = ui.mode == Mode.VsComputer
 
-    LaunchedEffect(outcome) {
-        if (outcome is Outcome.Won || outcome == Outcome.Draw) {
-            adsManager.onGameCompleted()
+    var lastRecordedOutcome by rememberSaveable { mutableStateOf<String?>(null) }
+    val completedOutcomeKey = computeCompletedOutcomeKey(
+        variant = ui.variant,
+        xWins = ui.xWins,
+        oWins = ui.oWins,
+        draws = ui.draws,
+        outcome = outcome,
+    )
+
+    LaunchedEffect(completedOutcomeKey) {
+        if (completedOutcomeKey != null) {
+            if (lastRecordedOutcome != completedOutcomeKey) {
+                lastRecordedOutcome = completedOutcomeKey
+                adsManager.onGameCompleted()
+            }
+        } else {
+            lastRecordedOutcome = null
         }
     }
 
@@ -169,46 +197,62 @@ private fun CompactLayout(
     onVariantClick: () -> Unit,
     adsManager: AdsManager = LocalAdsManager.current,
 ) {
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = CompactGutter, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Column(
-            Modifier.widthIn(max = CompactMaxWidth),
-            verticalArrangement = Arrangement.spacedBy(CompactSpacing),
-            horizontalAlignment = Alignment.CenterHorizontally,
+    Column(Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            val board = @Composable {
-                GameBoard(
-                    ui = ui,
-                    onIntent = onIntent,
-                    modifier = boardModifier.fillMaxWidth(),
-                )
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = CompactGutter, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(
+                    Modifier.widthIn(max = CompactMaxWidth),
+                    verticalArrangement = Arrangement.spacedBy(CompactSpacing),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val board = @Composable {
+                        GameBoard(
+                            ui = ui,
+                            onIntent = onIntent,
+                            modifier = boardModifier.fillMaxWidth(),
+                        )
+                    }
+                    if (boardFirst) {
+                        VariantBadge(
+                            variant = ui.variant,
+                            enabled = !ui.inChallenge,
+                            onClick = onVariantClick,
+                        )
+                        StatusBanner(ui)
+                        board()
+                        Scoreboard(ui)
+                        ProgressSection(ui, onIntent)
+                    } else {
+                        Header(ui = ui, onVariantClick = onVariantClick, compact = true)
+                        ProgressSection(ui, onIntent)
+                        Scoreboard(ui)
+                        StatusBanner(ui)
+                        board()
+                    }
+                    GlassPanel(Modifier.fillMaxWidth()) {
+                        if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
+                        ActionButtons(ui, onIntent)
+                    }
+                }
             }
-            if (boardFirst) {
-                VariantBadge(
-                    variant = ui.variant,
-                    enabled = !ui.inChallenge,
-                    onClick = onVariantClick,
-                )
-                StatusBanner(ui)
-                board()
-                Scoreboard(ui)
-                ProgressSection(ui, onIntent)
-            } else {
-                Header(ui = ui, onVariantClick = onVariantClick, compact = true)
-                ProgressSection(ui, onIntent)
-                Scoreboard(ui)
-                StatusBanner(ui)
-                board()
-            }
-            GlassPanel(Modifier.fillMaxWidth()) {
-                if (ui.inChallenge) ChallengeHeader(ui, onIntent) else ModeSelector(ui, onIntent)
-                ActionButtons(ui, onIntent)
-            }
-            if (adsManager.isBannerEnabled) {
-                adsManager.BannerAd(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp))
-            }
+        }
+        if (adsManager.isBannerEnabled) {
+            adsManager.BannerAd(
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+            )
         }
     }
 }
