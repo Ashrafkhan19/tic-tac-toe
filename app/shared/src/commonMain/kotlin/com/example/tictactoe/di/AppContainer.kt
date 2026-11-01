@@ -35,7 +35,7 @@ private fun defaultProgressRepository(): ProgressRepository = try {
  */
 class AppContainer(
     private val computerPlayers: ComputerPlayerProvider = DefaultComputerPlayerProvider(),
-    private val progressRepository: ProgressRepository = defaultProgressRepository(),
+    val progressRepository: ProgressRepository = defaultProgressRepository(),
     private val todayProvider: TodayProvider = SystemTodayProvider(),
     val adsManager: AdsManager = NoOpAdsManager(),
 ) {
