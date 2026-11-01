@@ -18,7 +18,10 @@ class HeuristicGridAI(
     fun chooseMove(board: GridBoard, turn: Mark): Int {
         val legal = board.emptyCells
         if (legal.isEmpty()) throw IllegalStateException("No legal moves available")
-        if (legal.size == board.size * board.size) return legal.size / 2 // Take center
+        if (legal.size == board.size * board.size) {
+            val mid = (board.size - 1) / 2
+            return mid * board.size + mid // index 5 on 4x4, 12 on 5x5
+        }
 
         // Easy mode blunder chance
         if (difficulty == Difficulty.Easy && random.nextInt(4) != 0) {

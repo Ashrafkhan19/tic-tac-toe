@@ -24,6 +24,10 @@ class UltimateAI(
             return legal.random(random)
         }
 
+        if (difficulty == Difficulty.Medium && random.nextInt(4) == 0) {
+            return legal.random(random)
+        }
+
         var bestMove = legal.first()
         var bestScore = Int.MIN_VALUE
 

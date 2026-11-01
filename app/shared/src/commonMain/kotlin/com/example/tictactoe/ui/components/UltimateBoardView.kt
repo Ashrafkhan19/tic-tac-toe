@@ -96,6 +96,8 @@ fun UltimateBoardView(
                                 board = subBoard,
                                 enabled = isPlayable,
                                 showWinLine = false,
+                                cellGap = 3.dp,
+                                cornerRadius = 4.dp,
                                 onCellClick = { microIndex -> onCellClick(macroIndex, microIndex) },
                                 modifier = Modifier.fillMaxSize().alpha(if (isComplete) 0.25f else 1f)
                             )

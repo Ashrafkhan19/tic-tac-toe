@@ -109,5 +109,15 @@ class UltimateAITest {
         assertEquals(4, move.macroIndex)
     }
 
+    @Test
+    fun aiMediumCanMakeBlunderMove() {
+        val seededRandom = kotlin.random.Random(0)
+        val ai = UltimateAI(Difficulty.Medium, random = seededRandom)
+        val board = UltimateBoard(activeMacroIndex = 4)
+        val move = ai.chooseMove(board, Mark.O)
+        assertTrue(move in board.legalMoves())
+        assertEquals(4, move.macroIndex)
+    }
+
     private fun boardWithSize3() = com.example.tictactoe.domain.model.GridBoard(size = 3, winLength = 3)
 }

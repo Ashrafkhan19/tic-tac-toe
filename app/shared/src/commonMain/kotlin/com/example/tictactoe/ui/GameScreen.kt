@@ -84,7 +84,7 @@ private val CompactTextHeight = 160.dp
 @Composable
 internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalGameColors.current
-    val outcome = ui.game.outcome
+    val outcome = ui.currentOutcome
     val vsCpu = ui.mode == Mode.VsComputer
 
     var showVariantPicker by remember { mutableStateOf(false) }
@@ -103,7 +103,7 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
     // Celebrate human wins (or any win in 2-player); shake on a loss or draw.
     val celebrates = outcome is Outcome.Won && (!vsCpu || outcome.winner == Mark.X)
     val confettiTrigger = if (celebrates) ui.xWins + ui.oWins else -1
-    val shakeRound: GameState? = ui.game.takeIf { outcome == Outcome.Draw || (outcome is Outcome.Won && !celebrates) }
+    val shakeRound: Outcome? = outcome.takeIf { outcome == Outcome.Draw || (outcome is Outcome.Won && !celebrates) }
 
     val shake = remember { Animatable(0f) }
     LaunchedEffect(shakeRound) {

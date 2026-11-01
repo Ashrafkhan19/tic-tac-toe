@@ -76,11 +76,11 @@ class HeuristicGridAITest {
         val ai = HeuristicGridAI(difficulty = Difficulty.Unbeatable)
         val board4 = GridBoard(size = 4, winLength = 4)
         val move4 = ai.chooseMove(board4, Mark.X)
-        assertEquals(board4.emptyCells.size / 2, move4)
+        assertEquals(5, move4)
 
         val board5 = GridBoard(size = 5, winLength = 4)
         val move5 = ai.chooseMove(board5, Mark.X)
-        assertEquals(board5.emptyCells.size / 2, move5)
+        assertEquals(12, move5)
     }
 
     @Test

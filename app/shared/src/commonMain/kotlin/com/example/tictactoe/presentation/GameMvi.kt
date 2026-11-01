@@ -66,12 +66,15 @@ data class UiState(
             }
         }
 
-    val isGameOver: Boolean
+    val currentTurn: Mark
         get() = when (variant) {
-            GameVariant.CLASSIC_3X3 -> game.isOver
-            GameVariant.GRID_4X4, GameVariant.GRID_5X5 -> gridBoard?.outcome() !is Outcome.InProgress
-            GameVariant.ULTIMATE -> ultimateBoard?.outcome() !is Outcome.InProgress
+            GameVariant.CLASSIC_3X3 -> game.turn
+            GameVariant.GRID_4X4, GameVariant.GRID_5X5 -> gridBoard?.let { currentTurn(it) } ?: Mark.X
+            GameVariant.ULTIMATE -> ultimateBoard?.let { currentTurn(it) } ?: Mark.X
         }
+
+    val isGameOver: Boolean
+        get() = currentOutcome !is Outcome.InProgress
 
     val currentOutcome: Outcome
         get() = when (variant) {

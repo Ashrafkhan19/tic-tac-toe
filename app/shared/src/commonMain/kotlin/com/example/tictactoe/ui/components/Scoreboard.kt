@@ -40,9 +40,10 @@ import com.example.tictactoe.ui.theme.LocalGameColors
 fun Scoreboard(ui: UiState, modifier: Modifier = Modifier) {
     val colors = LocalGameColors.current
     val vsCpu = ui.mode == Mode.VsComputer
-    val outcome = ui.game.outcome
+    val outcome = ui.currentOutcome
+    val currentTurn = ui.currentTurn
     fun active(mark: Mark) =
-        (outcome == Outcome.InProgress && ui.game.turn == mark) || (outcome is Outcome.Won && outcome.winner == mark)
+        (outcome == Outcome.InProgress && currentTurn == mark) || (outcome is Outcome.Won && outcome.winner == mark)
 
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         ScoreCard(if (vsCpu) "You" else "Player X", ui.xWins, colors.x, active(Mark.X), Modifier.weight(1f))

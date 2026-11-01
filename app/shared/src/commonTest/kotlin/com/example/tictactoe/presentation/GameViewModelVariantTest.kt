@@ -294,4 +294,39 @@ class GameViewModelVariantTest {
         assertNull(vm.state.value.game.board.cells[0])
         assertEquals(16, vm.state.value.gridBoard?.emptyCells?.size)
     }
+
+    @Test
+    fun currentTurnAndOutcomeReflectVariantState() = runTest {
+        val repo = InMemoryProgressRepository()
+        val vm = GameViewModel(progressRepository = repo, todayProvider = fixedToday, computerDispatcher = testDispatcher)
+
+        // Classic 3x3
+        assertEquals(Mark.X, vm.state.value.currentTurn)
+        assertFalse(vm.state.value.isGameOver)
+        assertEquals(Outcome.InProgress, vm.state.value.currentOutcome)
+
+        // Switch to 4x4 in 2-player mode
+        vm.send(Intent.ModeSelected(Mode.TwoPlayer))
+        vm.send(Intent.SelectVariant(GameVariant.GRID_4X4))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(Mark.X, vm.state.value.currentTurn)
+        assertFalse(vm.state.value.isGameOver)
+
+        // Player X moves -> turn is O
+        vm.send(Intent.PlaceVariantMove(GameMove.Grid(0)))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(Mark.O, vm.state.value.currentTurn)
+
+        // Switch to Ultimate
+        vm.send(Intent.SelectVariant(GameVariant.ULTIMATE))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(Mark.X, vm.state.value.currentTurn)
+        assertFalse(vm.state.value.isGameOver)
+
+        // Player X moves -> turn is O
+        vm.send(Intent.PlaceVariantMove(GameMove.Ultimate(0, 0)))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(Mark.O, vm.state.value.currentTurn)
+    }
 }

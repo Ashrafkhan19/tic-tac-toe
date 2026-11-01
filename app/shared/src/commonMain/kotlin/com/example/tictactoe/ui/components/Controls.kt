@@ -125,7 +125,7 @@ fun ActionButtons(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = 
         animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
         label = "pulse",
     )
-    val roundOver = ui.game.isOver
+    val roundOver = ui.isGameOver
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Button(
             onClick = { onIntent(Intent.NewRound) },

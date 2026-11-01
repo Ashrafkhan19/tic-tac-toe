@@ -97,32 +97,34 @@ fun AdaptiveGridBoard(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     showWinLine: Boolean = true,
+    cellGap: Dp? = null,
+    cornerRadius: Dp? = null,
 ) {
     val colors = LocalGameColors.current
     val size = board.size
-    val cellGap = when (size) {
+    val effectiveCellGap = cellGap ?: when (size) {
         3 -> 8.dp
         4 -> 6.dp
         else -> 4.dp
     }
-    val cornerRadius = when (size) {
+    val effectiveCornerRadius = cornerRadius ?: when (size) {
         3 -> 12.dp
         4 -> 8.dp
         else -> 6.dp
     }
-    val cellShape = RoundedCornerShape(cornerRadius)
+    val cellShape = RoundedCornerShape(effectiveCornerRadius)
     val won = board.outcome() as? Outcome.Won
     val isGameOver = board.outcome() !is Outcome.InProgress
 
     Box(modifier = modifier.aspectRatio(1f).fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(cellGap),
+            verticalArrangement = Arrangement.spacedBy(effectiveCellGap),
         ) {
             for (r in 0 until size) {
                 Row(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(cellGap),
+                    horizontalArrangement = Arrangement.spacedBy(effectiveCellGap),
                 ) {
                     for (c in 0 until size) {
                         val index = r * size + c
@@ -169,7 +171,7 @@ fun AdaptiveGridBoard(
             }
         }
         if (showWinLine && won != null) {
-            GridWinLine(won = won, size = size, gap = cellGap, modifier = Modifier.matchParentSize())
+            GridWinLine(won = won, size = size, gap = effectiveCellGap, modifier = Modifier.matchParentSize())
         }
     }
 }
