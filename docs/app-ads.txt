@@ -1,3 +1,1 @@
-# Google AdMob app-ads.txt for studio.gameloop.tictactoe
-# Replace pub-XXXXXXXXXXXXXXXX with your actual 16-digit AdMob Publisher ID:
-google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+google.com, pub-3749655808000338, DIRECT, f08c47fec0942fa0
