@@ -31,8 +31,8 @@ android {
         applicationId = "studio.gameloop.tictactoe"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = project.findProperty("versionCode")?.toString()?.toIntOrNull() ?: 3
-        versionName = project.findProperty("versionName")?.toString() ?: "1.2"
+        versionCode = project.findProperty("versionCode")?.toString()?.toIntOrNull() ?: 4
+        versionName = project.findProperty("versionName")?.toString() ?: "1.1"
     }
     val envKeystorePath = System.getenv("KEYSTORE_PATH")
     val keystoreFile = envKeystorePath?.takeIf { it.isNotBlank() }?.let { path ->
