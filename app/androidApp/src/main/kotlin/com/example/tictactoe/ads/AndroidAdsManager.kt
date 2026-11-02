@@ -66,7 +66,7 @@ class AndroidAdsManager(
             factory = { context ->
                 AdView(context).apply {
                     setAdSize(AdSize.BANNER)
-                    adUnitId = AdConfig.TEST_BANNER_AD_UNIT_ID
+                    adUnitId = AdConfig.getBannerAdUnitId()
                     loadAd(AdRequest.Builder().build())
                 }
             },
@@ -130,7 +130,7 @@ class AndroidAdsManager(
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(
             activity,
-            AdConfig.TEST_INTERSTITIAL_AD_UNIT_ID,
+            AdConfig.getInterstitialAdUnitId(),
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {

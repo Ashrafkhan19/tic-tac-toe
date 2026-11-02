@@ -1,21 +1,29 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Preserve line numbers and source file names for de-obfuscation in crash reporting
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Kotlinx Serialization
+-keepattributes *Annotation*, InnerClasses
+-dontwarn kotlinx.serialization.**
+-keepclassmembers class * {
+    *** Companion;
+}
+-keepclasseswithmembers class * {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keepclassmembers class * {
+    @kotlinx.serialization.SerialName <fields>;
+}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Google Play Services & AdMob
+-keep public class com.google.android.gms.ads.** {
+    public *;
+}
+-keep public class com.google.ads.** {
+    public *;
+}
+-keep class com.google.android.gms.internal.ads.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Multiplatform Settings
+-dontwarn com.russhwolf.settings.**
+-keep class com.russhwolf.settings.** { *; }
