@@ -52,3 +52,4 @@ class NBackSession(
         return score.coerceIn(0, 100)
     }
 }
+

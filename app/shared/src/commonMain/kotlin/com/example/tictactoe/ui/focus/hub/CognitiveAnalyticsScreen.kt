@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tictactoe.ads.LocalAdsManager
 import com.example.tictactoe.domain.focus.CognitiveBenchmark
 import com.example.tictactoe.domain.focus.CognitivePillars
 import com.example.tictactoe.domain.progress.PlayerProgress
@@ -260,6 +261,15 @@ fun CognitiveAnalyticsScreen(
                     stat = "${if (progress.bestMathPerMinute > 0) progress.bestMathPerMinute else 15} ops/m",
                     percentile = pillars.problemSolvingPercentile,
                     comparison = "Calculation throughput outperforms ${pillars.problemSolvingPercentile}% of peers"
+                )
+            }
+
+            val adsManager = LocalAdsManager.current
+            if (adsManager.isBannerEnabled) {
+                adsManager.BannerAd(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 8.dp)
                 )
             }
         }

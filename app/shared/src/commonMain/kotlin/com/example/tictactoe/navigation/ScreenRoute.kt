@@ -14,3 +14,4 @@ enum class ScreenRoute {
     WAKEFUL_REST,
     ANALYTICS
 }
+

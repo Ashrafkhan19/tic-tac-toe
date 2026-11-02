@@ -80,3 +80,4 @@ class GoNoGoEngine(
         return if (hits == 0) 0L else (totalReactionTimeMillis / hits)
     }
 }
+

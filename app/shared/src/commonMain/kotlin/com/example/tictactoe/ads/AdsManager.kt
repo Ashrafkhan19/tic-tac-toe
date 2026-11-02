@@ -13,7 +13,12 @@ interface AdsManager {
     fun BannerAd(modifier: Modifier = Modifier)
 
     fun onGameCompleted()
+    fun onFocusWorkoutCompleted()
     fun canShowInterstitial(): Boolean
     fun showInterstitialIfReady(onDismiss: () -> Unit)
     fun loadInterstitial()
+
+    fun canShowRewarded(): Boolean
+    fun showRewardedIfReady(onRewardEarned: (rewardAmount: Int) -> Unit, onDismiss: () -> Unit)
+    fun loadRewarded()
 }

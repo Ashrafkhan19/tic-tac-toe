@@ -66,3 +66,4 @@ class SpeedMathEngine(
         return MathQuestion(prompt = prompt, correctAnswer = ans, options = options)
     }
 }
+

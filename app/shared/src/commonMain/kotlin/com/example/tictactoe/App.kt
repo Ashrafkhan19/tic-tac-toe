@@ -83,6 +83,11 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                                 container.progressRepository.save(updated)
                                 playerProgress = updated
                             }
+                        },
+                        onClaimRewardedXp = { bonusXp ->
+                            val updated = playerProgress.copy(xp = playerProgress.xp + bonusXp)
+                            container.progressRepository.save(updated)
+                            playerProgress = updated
                         }
                     )
                 }
@@ -112,7 +117,10 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                             container.progressRepository.save(updated)
                             playerProgress = updated
                             dailyCircuit = dailyCircuit.copy(neuroDrillCompleted = true)
-                            currentRoute = ScreenRoute.GYM
+                            container.adsManager.onFocusWorkoutCompleted()
+                            container.adsManager.showInterstitialIfReady {
+                                currentRoute = ScreenRoute.GYM
+                            }
                         },
                         onRecordReactionTime = { ms ->
                             val currentBest = playerProgress.bestReactionMs
@@ -158,7 +166,10 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                             container.progressRepository.save(updated)
                             playerProgress = updated
                             dailyCircuit = dailyCircuit.copy(deepActivityCompleted = true)
-                            currentRoute = ScreenRoute.GYM
+                            container.adsManager.onFocusWorkoutCompleted()
+                            container.adsManager.showInterstitialIfReady {
+                                currentRoute = ScreenRoute.GYM
+                            }
                         },
                         onBack = { currentRoute = ScreenRoute.GYM }
                     )
@@ -174,7 +185,10 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                             container.progressRepository.save(updated)
                             playerProgress = updated
                             dailyCircuit = dailyCircuit.copy(deepActivityCompleted = true)
-                            currentRoute = ScreenRoute.GYM
+                            container.adsManager.onFocusWorkoutCompleted()
+                            container.adsManager.showInterstitialIfReady {
+                                currentRoute = ScreenRoute.GYM
+                            }
                         },
                         onBack = { currentRoute = ScreenRoute.GYM }
                     )

@@ -15,9 +15,16 @@ class NoOpAdsManager : AdsManager {
     }
 
     override fun onGameCompleted() {}
+    override fun onFocusWorkoutCompleted() {}
     override fun canShowInterstitial(): Boolean = false
     override fun showInterstitialIfReady(onDismiss: () -> Unit) {
         onDismiss()
     }
     override fun loadInterstitial() {}
+
+    override fun canShowRewarded(): Boolean = false
+    override fun showRewardedIfReady(onRewardEarned: (rewardAmount: Int) -> Unit, onDismiss: () -> Unit) {
+        onDismiss()
+    }
+    override fun loadRewarded() {}
 }

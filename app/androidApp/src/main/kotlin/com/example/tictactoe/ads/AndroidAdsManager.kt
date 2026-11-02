@@ -15,6 +15,9 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.rewarded.RewardItem
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 
 class AndroidAdsManager(
     private var activityProvider: () -> Activity? = { null },
@@ -32,15 +35,19 @@ class AndroidAdsManager(
 
     private var interstitialAd: InterstitialAd? = null
     private var isLoadingInterstitial: Boolean = false
+    private var rewardedAd: RewardedAd? = null
+    private var isLoadingRewarded: Boolean = false
 
     init {
         loadInterstitial()
+        loadRewarded()
     }
 
     fun setActivity(activity: Activity?) {
         this.activityProvider = { activity }
-        if (activity != null && interstitialAd == null) {
-            loadInterstitial()
+        if (activity != null) {
+            if (interstitialAd == null) loadInterstitial()
+            if (rewardedAd == null) loadRewarded()
         }
     }
 
@@ -71,6 +78,10 @@ class AndroidAdsManager(
 
     override fun onGameCompleted() {
         policy.recordGameCompleted()
+    }
+
+    override fun onFocusWorkoutCompleted() {
+        policy.recordFocusWorkoutCompleted()
     }
 
     override fun canShowInterstitial(): Boolean {
@@ -130,6 +141,75 @@ class AndroidAdsManager(
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     interstitialAd = null
                     isLoadingInterstitial = false
+                }
+            }
+        )
+    }
+
+    override fun canShowRewarded(): Boolean {
+        val activity = activityProvider()
+        val isActivityValid = activity != null && !activity.isFinishing && !activity.isDestroyed
+        return rewardedAd != null && isActivityValid
+    }
+
+    override fun showRewardedIfReady(onRewardEarned: (rewardAmount: Int) -> Unit, onDismiss: () -> Unit) {
+        val activity = activityProvider()
+        val ad = rewardedAd
+        if (activity != null && !activity.isFinishing && !activity.isDestroyed && ad != null) {
+            var earnedReward = false
+            var rewardAmount = 1
+            ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    rewardedAd = null
+                    loadRewarded()
+                    if (earnedReward) {
+                        onRewardEarned(rewardAmount)
+                    }
+                    onDismiss()
+                }
+
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    rewardedAd = null
+                    loadRewarded()
+                    onDismiss()
+                }
+
+                override fun onAdShowedFullScreenContent() {
+                    rewardedAd = null
+                }
+            }
+            ad.show(activity) { item: RewardItem ->
+                earnedReward = true
+                rewardAmount = item.amount
+            }
+        } else {
+            if (rewardedAd == null) {
+                loadRewarded()
+            }
+            onDismiss()
+        }
+    }
+
+    override fun loadRewarded() {
+        val activity = activityProvider() ?: return
+        if (activity.isFinishing || activity.isDestroyed) return
+        if (isLoadingRewarded || rewardedAd != null) return
+
+        isLoadingRewarded = true
+        val adRequest = AdRequest.Builder().build()
+        RewardedAd.load(
+            activity,
+            AdConfig.TEST_REWARDED_AD_UNIT_ID,
+            adRequest,
+            object : RewardedAdLoadCallback() {
+                override fun onAdLoaded(ad: RewardedAd) {
+                    rewardedAd = ad
+                    isLoadingRewarded = false
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    rewardedAd = null
+                    isLoadingRewarded = false
                 }
             }
         )

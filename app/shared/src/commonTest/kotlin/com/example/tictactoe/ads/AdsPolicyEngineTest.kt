@@ -58,4 +58,16 @@ class AdsPolicyEngineTest {
         currentTime += 50_000L
         assertTrue(policy.canShowInterstitial())
     }
+
+    @Test
+    fun allowsInterstitialAfterFocusWorkoutAndCooldown() {
+        assertFalse(policy.canShowInterstitial())
+        policy.recordFocusWorkoutCompleted()
+        assertEquals(1, policy.completedWorkoutsCount)
+        assertTrue(policy.canShowInterstitial())
+
+        policy.markAdShown()
+        assertEquals(0, policy.completedWorkoutsCount)
+        assertFalse(policy.canShowInterstitial())
+    }
 }

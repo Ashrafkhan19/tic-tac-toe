@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.tictactoe.ads.LocalAdsManager
 import com.example.tictactoe.domain.focus.DailyCircuitState
 import com.example.tictactoe.domain.progress.PlayerProgress
 import com.example.tictactoe.ui.theme.LocalGameColors
@@ -56,9 +57,11 @@ fun GymScreen(
     onOpenWakefulRest: () -> Unit,
     onOpenAnalytics: () -> Unit,
     onToggleSleepFoundation: () -> Unit,
-    onToggleMovementFoundation: () -> Unit
+    onToggleMovementFoundation: () -> Unit,
+    onClaimRewardedXp: (Int) -> Unit = {}
 ) {
     val colors = LocalGameColors.current
+    val adsManager = LocalAdsManager.current
     var activeScienceInsight by remember { mutableStateOf<String?>(null) }
 
     Box(
@@ -442,6 +445,53 @@ fun GymScreen(
                         onClick = onOpenFocusTimer
                     )
                 }
+            }
+
+            // 6. Opt-In Rewarded Focus Boost (Watch Sponsor for +50 XP)
+            if (adsManager.canShowRewarded()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            adsManager.showRewardedIfReady(
+                                onRewardEarned = { amount -> onClaimRewardedXp(50) },
+                                onDismiss = {}
+                            )
+                        }
+                        .border(1.dp, Color(0xFFFFD54F).copy(alpha = 0.5f), RoundedCornerShape(14.dp)),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFD54F).copy(alpha = 0.10f)),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Text("🎁", fontSize = 28.sp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Daily Focus Boost (+50 XP)",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = Color(0xFFFFD54F),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Watch a short partner sponsor video to accelerate your cognitive leveling.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = colors.onSurface.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 7. Non-Intrusive Bottom Banner Ad
+            if (adsManager.isBannerEnabled) {
+                adsManager.BannerAd(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                )
             }
         }
 

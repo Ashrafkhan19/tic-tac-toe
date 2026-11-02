@@ -16,12 +16,20 @@ class AppContainerAdsTest {
         override fun BannerAd(modifier: androidx.compose.ui.Modifier) {}
 
         override fun onGameCompleted() { completedGames++ }
+        override fun onFocusWorkoutCompleted() {}
         override fun canShowInterstitial() = true
         override fun showInterstitialIfReady(onDismiss: () -> Unit) {
             interstitialShown++
             onDismiss()
         }
         override fun loadInterstitial() {}
+
+        override fun canShowRewarded(): Boolean = true
+        override fun showRewardedIfReady(onRewardEarned: (rewardAmount: Int) -> Unit, onDismiss: () -> Unit) {
+            onRewardEarned(1)
+            onDismiss()
+        }
+        override fun loadRewarded() {}
     }
 
     @Test

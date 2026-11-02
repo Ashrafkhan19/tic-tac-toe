@@ -24,6 +24,8 @@ class GameScreenAdsTest {
             completedCalls++
         }
 
+        override fun onFocusWorkoutCompleted() {}
+
         override fun canShowInterstitial() = true
 
         override fun showInterstitialIfReady(onDismiss: () -> Unit) {
@@ -32,6 +34,15 @@ class GameScreenAdsTest {
         }
 
         override fun loadInterstitial() {}
+
+        override fun canShowRewarded(): Boolean = true
+
+        override fun showRewardedIfReady(onRewardEarned: (rewardAmount: Int) -> Unit, onDismiss: () -> Unit) {
+            onRewardEarned(1)
+            onDismiss()
+        }
+
+        override fun loadRewarded() {}
     }
 
     @Test

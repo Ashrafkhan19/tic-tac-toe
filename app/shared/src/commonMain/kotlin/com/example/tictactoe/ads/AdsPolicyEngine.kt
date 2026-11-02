@@ -10,6 +10,8 @@ class AdsPolicyEngine(
 ) {
     var completedGamesCount: Int = 0
         private set
+    var completedWorkoutsCount: Int = 0
+        private set
     var lastAdShownTimestampMs: Long = 0L
         private set
 
@@ -17,14 +19,20 @@ class AdsPolicyEngine(
         completedGamesCount++
     }
 
+    fun recordFocusWorkoutCompleted() {
+        completedWorkoutsCount++
+    }
+
     fun canShowInterstitial(): Boolean {
-        if (completedGamesCount < completedGamesThreshold) return false
+        val eligible = completedGamesCount >= completedGamesThreshold || completedWorkoutsCount >= 1
+        if (!eligible) return false
         val now = currentTimeProvider()
         return (now - lastAdShownTimestampMs) >= cooldownDurationMs
     }
 
     fun markAdShown() {
         completedGamesCount = 0
+        completedWorkoutsCount = 0
         lastAdShownTimestampMs = currentTimeProvider()
     }
 }
