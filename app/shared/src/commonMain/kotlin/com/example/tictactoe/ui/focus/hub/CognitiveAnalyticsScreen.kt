@@ -47,23 +47,33 @@ fun CognitiveAnalyticsScreen(
 ) {
     val colors = LocalGameColors.current
 
-    val pillars = remember(progress) {
-        val speedPct = CognitiveBenchmark.reactionTimePercentile(if (progress.bestReactionMs > 0) progress.bestReactionMs else 280L)
-        val memoryPct = CognitiveBenchmark.workingMemoryPercentile(if (progress.bestSpatialSpan > 0) progress.bestSpatialSpan else 5)
-        val inhibPct = CognitiveBenchmark.inhibitionPercentile(if (progress.bestInhibitionPercent > 0) progress.bestInhibitionPercent else 80)
-        val flexPct = CognitiveBenchmark.flexibilityPercentile(if (progress.bestFlexibilitySeconds > 0) progress.bestFlexibilitySeconds else 24.0)
-        val mathPct = CognitiveBenchmark.speedMathPercentile(if (progress.bestMathPerMinute > 0) progress.bestMathPerMinute else 15)
+    val hasSpeed = progress.bestReactionMs > 0
+    val hasMemory = progress.bestSpatialSpan > 0
+    val hasInhibition = progress.bestInhibitionPercent > 0
+    val hasFlexibility = progress.bestFlexibilitySeconds > 0.0
+    val hasMath = progress.bestMathPerMinute > 0
 
+    // Unmeasured pillars score 0 and are excluded from the overall index.
+    val pillars = remember(progress) {
         CognitivePillars(
-            speedPercentile = speedPct,
-            memoryPercentile = memoryPct,
-            inhibitionPercentile = inhibPct,
-            flexibilityPercentile = flexPct,
-            problemSolvingPercentile = mathPct
+            speedPercentile = if (hasSpeed) CognitiveBenchmark.reactionTimePercentile(progress.bestReactionMs) else 0,
+            memoryPercentile = if (hasMemory) CognitiveBenchmark.workingMemoryPercentile(progress.bestSpatialSpan) else 0,
+            inhibitionPercentile = if (hasInhibition) CognitiveBenchmark.inhibitionPercentile(progress.bestInhibitionPercent) else 0,
+            flexibilityPercentile = if (hasFlexibility) CognitiveBenchmark.flexibilityPercentile(progress.bestFlexibilitySeconds) else 0,
+            problemSolvingPercentile = if (hasMath) CognitiveBenchmark.speedMathPercentile(progress.bestMathPerMinute) else 0
         )
     }
 
-    val overallTier = CognitiveBenchmark.tierLabel(pillars.overallIndex)
+    val measured = listOf(
+        hasSpeed to pillars.speedPercentile,
+        hasMemory to pillars.memoryPercentile,
+        hasInhibition to pillars.inhibitionPercentile,
+        hasFlexibility to pillars.flexibilityPercentile,
+        hasMath to pillars.problemSolvingPercentile
+    ).filter { it.first }.map { it.second }
+    val hasAnyData = measured.isNotEmpty()
+    val overallIndex = if (hasAnyData) measured.sum() / measured.size else 0
+    val overallTier = if (hasAnyData) CognitiveBenchmark.tierLabel(overallIndex) else "No data yet"
 
     Box(
         modifier = Modifier
@@ -123,21 +133,21 @@ fun CognitiveAnalyticsScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "${pillars.overallIndex} / 100",
+                        text = if (hasAnyData) "$overallIndex / 100" else "-- / 100",
                         fontSize = 50.sp,
                         fontWeight = FontWeight.Black,
                         color = colors.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "$overallTier (Worldwide Benchmark)",
+                        text = if (hasAnyData) "$overallTier (Worldwide Benchmark)" else overallTier,
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "You outperform ${pillars.overallIndex}% of individuals across memory, speed, and executive control.",
+                        text = if (hasAnyData) "You outperform $overallIndex% of individuals across memory, speed, and executive control." else "Complete a Mind Gym drill to see your cognitive profile.",
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.muted
                     )
@@ -193,7 +203,7 @@ fun CognitiveAnalyticsScreen(
                         // Draw User's Polygon
                         val userPath = Path()
                         for (i in 0 until 5) {
-                            val scoreFraction = (radarScores[i] / 100f).coerceIn(0.1f, 1.0f)
+                            val scoreFraction = (radarScores[i] / 100f).coerceIn(0f, 1.0f)
                             val angle = (i * 2 * kotlin.math.PI / 5) - (kotlin.math.PI / 2)
                             val x = center.x + (radius * scoreFraction * cos(angle)).toFloat()
                             val y = center.y + (radius * scoreFraction * sin(angle)).toFloat()
@@ -226,40 +236,45 @@ fun CognitiveAnalyticsScreen(
                 BenchmarkRowCard(
                     icon = "⚡",
                     title = "Reaction Speed & Reflexes",
-                    stat = "${if (progress.bestReactionMs > 0) progress.bestReactionMs else 280}ms",
+                    stat = if (hasSpeed) "${progress.bestReactionMs}ms" else "--",
                     percentile = pillars.speedPercentile,
+                    hasData = hasSpeed,
                     comparison = "Faster than ${pillars.speedPercentile}% of population (avg 290ms)"
                 )
 
                 BenchmarkRowCard(
                     icon = "🧠",
                     title = "Working Memory Span",
-                    stat = "${if (progress.bestSpatialSpan > 0) progress.bestSpatialSpan else 5} items",
+                    stat = if (hasMemory) "${progress.bestSpatialSpan} items" else "--",
                     percentile = pillars.memoryPercentile,
+                    hasData = hasMemory,
                     comparison = "Exceeds ${pillars.memoryPercentile}% of adult working memory buffers"
                 )
 
                 BenchmarkRowCard(
                     icon = "🛡️",
                     title = "Impulse & Inhibitory Control",
-                    stat = "${if (progress.bestInhibitionPercent > 0) progress.bestInhibitionPercent else 82}%",
+                    stat = if (hasInhibition) "${progress.bestInhibitionPercent}%" else "--",
                     percentile = pillars.inhibitionPercentile,
+                    hasData = hasInhibition,
                     comparison = "Top ${100 - pillars.inhibitionPercentile}% in suppressing automatic cognitive interference"
                 )
 
                 BenchmarkRowCard(
                     icon = "🔄",
                     title = "Task-Switching Flexibility",
-                    stat = "Trail Test",
+                    stat = if (hasFlexibility) "Trail Test" else "--",
                     percentile = pillars.flexibilityPercentile,
+                    hasData = hasFlexibility,
                     comparison = "Mental shifting speed is in the top ${100 - pillars.flexibilityPercentile}%"
                 )
 
                 BenchmarkRowCard(
                     icon = "🧩",
                     title = "Mental Arithmetic & Logic",
-                    stat = "${if (progress.bestMathPerMinute > 0) progress.bestMathPerMinute else 15} ops/m",
+                    stat = if (hasMath) "${progress.bestMathPerMinute} ops/m" else "--",
                     percentile = pillars.problemSolvingPercentile,
+                    hasData = hasMath,
                     comparison = "Calculation throughput outperforms ${pillars.problemSolvingPercentile}% of peers"
                 )
             }
@@ -282,6 +297,7 @@ private fun BenchmarkRowCard(
     title: String,
     stat: String,
     percentile: Int,
+    hasData: Boolean,
     comparison: String
 ) {
     val colors = LocalGameColors.current
@@ -308,7 +324,7 @@ private fun BenchmarkRowCard(
                         color = colors.onSurface
                     )
                     Text(
-                        text = "Top ${100 - percentile}%",
+                        text = if (hasData) "Top ${100 - percentile}%" else "No data",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = colors.primary
@@ -316,7 +332,7 @@ private fun BenchmarkRowCard(
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = comparison,
+                    text = if (hasData) comparison else "Play this drill to unlock your benchmark",
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.muted
                 )

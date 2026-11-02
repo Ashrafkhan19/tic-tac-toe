@@ -87,7 +87,7 @@ fun GymScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                     Text(
                         text = "MIND GYM",
                         style = MaterialTheme.typography.titleLarge,
@@ -131,11 +131,12 @@ fun GymScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(
+                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text("📊", fontSize = 22.sp)
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Cognitive Analytics & Percentile Radar",
                                 style = MaterialTheme.typography.bodyMedium,
@@ -149,7 +150,15 @@ fun GymScreen(
                             )
                         }
                     }
-                    Text("View →", color = colors.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "View →",
+                        color = colors.primary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
             }
 
@@ -540,7 +549,9 @@ private fun StatPill(
             text = label,
             fontSize = 12.sp,
             color = textColor,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            softWrap = false
         )
     }
 }
@@ -578,12 +589,13 @@ private fun FoundationCard(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = colors.onSurface
+                    color = colors.onSurface,
+                    modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = "ℹ️",
                     fontSize = 12.sp,
-                    modifier = Modifier.clickable { onInfo() }
+                    modifier = Modifier.padding(start = 6.dp).clickable { onInfo() }
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))

@@ -70,4 +70,26 @@ class AdsPolicyEngineTest {
         assertEquals(0, policy.completedWorkoutsCount)
         assertFalse(policy.canShowInterstitial())
     }
+
+    @Test
+    fun blocksInterstitialDuringInitialGrace() {
+        var now = 1_000L
+        val graced = AdsPolicyEngine(completedGamesThreshold = 1, cooldownDurationMs = 0L, initialGraceMs = 120_000L, currentTimeProvider = { now })
+        graced.recordGameCompleted()
+        assertFalse(graced.canShowInterstitial())
+        now += 120_000L
+        assertTrue(graced.canShowInterstitial())
+    }
+
+    @Test
+    fun rewardedShownStartsCooldownButKeepsProgress() {
+        policy.recordGameCompleted()
+        policy.recordGameCompleted()
+        policy.recordGameCompleted()
+        policy.markRewardedShown()
+        assertEquals(3, policy.completedGamesCount)
+        assertFalse(policy.canShowInterstitial())
+        currentTime += 60_000L
+        assertTrue(policy.canShowInterstitial())
+    }
 }

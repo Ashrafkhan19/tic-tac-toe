@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 
 /**
@@ -77,7 +78,7 @@ class SettingsProgressRepository(
             val bestReactionMs = (int(o, "bestReactionMs")?.toLong()) ?: defaults.bestReactionMs
             val bestSpatialSpan = int(o, "bestSpatialSpan") ?: defaults.bestSpatialSpan
             val bestInhibitionPercent = int(o, "bestInhibitionPercent") ?: defaults.bestInhibitionPercent
-            val bestFlexibilitySeconds = defaults.bestFlexibilitySeconds
+            val bestFlexibilitySeconds = double(o, "bestFlexibilitySeconds") ?: defaults.bestFlexibilitySeconds
             val bestMathPerMinute = int(o, "bestMathPerMinute") ?: defaults.bestMathPerMinute
             return PlayerProgress(
                 version = version,
@@ -158,6 +159,12 @@ class SettingsProgressRepository(
             val value = o[key] ?: return null
             if (value is JsonNull) return null
             return (value as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull ?: dropped(null)
+        }
+
+        private fun double(o: JsonObject, key: String): Double? {
+            val value = o[key] ?: return null
+            if (value is JsonNull) return null
+            return (value as? JsonPrimitive)?.takeIf { !it.isString }?.doubleOrNull ?: dropped(null)
         }
 
         private fun date(o: JsonObject, key: String): LocalDate? {

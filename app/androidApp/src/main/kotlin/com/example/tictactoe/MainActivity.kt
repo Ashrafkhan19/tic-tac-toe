@@ -1,6 +1,8 @@
 package com.example.tictactoe
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -21,14 +23,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            MobileAds.initialize(this@MainActivity) {}
-        }
-
         val ads = (sharedAdsManager ?: AndroidAdsManager()).apply {
             setActivity(this@MainActivity)
         }
         sharedAdsManager = ads
+
+        val appContext = applicationContext
+        lifecycleScope.launch(Dispatchers.IO) {
+            MobileAds.initialize(appContext) {
+                Handler(Looper.getMainLooper()).post { ads.onSdkInitialized() }
+            }
+        }
 
         val container = sharedAppContainer ?: AppContainer(adsManager = ads).also {
             sharedAppContainer = it

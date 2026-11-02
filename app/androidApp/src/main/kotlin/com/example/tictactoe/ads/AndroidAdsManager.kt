@@ -1,11 +1,18 @@
 package com.example.tictactoe.ads
 
 import android.app.Activity
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
@@ -21,7 +28,7 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 
 class AndroidAdsManager(
     private var activityProvider: () -> Activity? = { null },
-    currentTimeProvider: () -> Long = { SystemClock.elapsedRealtime() },
+    private val currentTimeProvider: () -> Long = { SystemClock.elapsedRealtime() },
 ) : AdsManager {
     constructor(activity: Activity) : this({ activity })
 
@@ -29,23 +36,42 @@ class AndroidAdsManager(
 
     private val policy = AdsPolicyEngine(
         completedGamesThreshold = 3,
-        cooldownDurationMs = 60_000L,
+        cooldownDurationMs = 90_000L,
+        initialGraceMs = 120_000L,
         currentTimeProvider = currentTimeProvider,
     )
 
-    private var interstitialAd: InterstitialAd? = null
-    private var isLoadingInterstitial: Boolean = false
-    private var rewardedAd: RewardedAd? = null
-    private var isLoadingRewarded: Boolean = false
+    private val mainHandler = Handler(Looper.getMainLooper())
 
-    init {
+    private var interstitialAd: InterstitialAd? = null
+    private var interstitialLoadedAtMs: Long = 0L
+    private var isLoadingInterstitial: Boolean = false
+    private var interstitialRetries: Int = 0
+
+    // State-backed so the Gym "watch to earn" card appears as soon as the ad finishes loading.
+    private var rewardedAd: RewardedAd? by mutableStateOf(null)
+    private var rewardedLoadedAtMs: Long = 0L
+    private var isLoadingRewarded: Boolean = false
+    private var rewardedRetries: Int = 0
+
+    // AdMob invalidates cached full-screen ads after about an hour; showing a stale one fails.
+    private fun isFresh(loadedAtMs: Long): Boolean = currentTimeProvider() - loadedAtMs < AD_MAX_AGE_MS
+
+    private fun retryDelayMs(attempt: Int): Long = RETRY_BASE_DELAY_MS shl (attempt - 1)
+
+    // Ad loads touch the Ads SDK (class init + Play Services binder calls), so they must not run
+    // before MobileAds.initialize completes or they can block the main thread during startup.
+    private var isSdkInitialized: Boolean by mutableStateOf(false)
+
+    fun onSdkInitialized() {
+        isSdkInitialized = true
         loadInterstitial()
         loadRewarded()
     }
 
     fun setActivity(activity: Activity?) {
         this.activityProvider = { activity }
-        if (activity != null) {
+        if (activity != null && isSdkInitialized) {
             if (interstitialAd == null) loadInterstitial()
             if (rewardedAd == null) loadRewarded()
         }
@@ -59,13 +85,19 @@ class AndroidAdsManager(
 
     @Composable
     override fun BannerAd(modifier: Modifier) {
+        if (!isSdkInitialized) return
+        val context = LocalContext.current
+        val adSize = remember(context) {
+            val metrics = context.resources.displayMetrics
+            AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, (metrics.widthPixels / metrics.density).toInt())
+        }
         AndroidView(
             modifier = modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
             factory = { context ->
                 AdView(context).apply {
-                    setAdSize(AdSize.BANNER)
+                    setAdSize(adSize)
                     adUnitId = AdConfig.getBannerAdUnitId()
                     loadAd(AdRequest.Builder().build())
                 }
@@ -87,12 +119,20 @@ class AndroidAdsManager(
     override fun canShowInterstitial(): Boolean {
         val activity = activityProvider()
         val isActivityValid = activity != null && !activity.isFinishing && !activity.isDestroyed
-        return policy.canShowInterstitial() && interstitialAd != null && isActivityValid
+        return policy.canShowInterstitial() && hasFreshInterstitial() && isActivityValid
+    }
+
+    private fun hasFreshInterstitial(): Boolean {
+        if (interstitialAd != null && !isFresh(interstitialLoadedAtMs)) {
+            interstitialAd = null
+            loadInterstitial()
+        }
+        return interstitialAd != null
     }
 
     override fun showInterstitialIfReady(onDismiss: () -> Unit) {
         val activity = activityProvider()
-        val ad = interstitialAd
+        val ad = if (hasFreshInterstitial()) interstitialAd else null
         if (activity != null && !activity.isFinishing && !activity.isDestroyed && ad != null && policy.canShowInterstitial()) {
             ad.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
@@ -122,6 +162,7 @@ class AndroidAdsManager(
     }
 
     override fun loadInterstitial() {
+        if (!isSdkInitialized) return
         val activity = activityProvider() ?: return
         if (activity.isFinishing || activity.isDestroyed) return
         if (isLoadingInterstitial || interstitialAd != null) return
@@ -135,12 +176,18 @@ class AndroidAdsManager(
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(ad: InterstitialAd) {
                     interstitialAd = ad
+                    interstitialLoadedAtMs = currentTimeProvider()
+                    interstitialRetries = 0
                     isLoadingInterstitial = false
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     interstitialAd = null
                     isLoadingInterstitial = false
+                    if (interstitialRetries < MAX_LOAD_RETRIES) {
+                        interstitialRetries++
+                        mainHandler.postDelayed({ loadInterstitial() }, retryDelayMs(interstitialRetries))
+                    }
                 }
             }
         )
@@ -149,6 +196,10 @@ class AndroidAdsManager(
     override fun canShowRewarded(): Boolean {
         val activity = activityProvider()
         val isActivityValid = activity != null && !activity.isFinishing && !activity.isDestroyed
+        if (rewardedAd != null && !isFresh(rewardedLoadedAtMs)) {
+            rewardedAd = null
+            loadRewarded()
+        }
         return rewardedAd != null && isActivityValid
     }
 
@@ -163,6 +214,8 @@ class AndroidAdsManager(
                     rewardedAd = null
                     loadRewarded()
                     if (earnedReward) {
+                        // The user just sat through an ad; don't chase it with an interstitial.
+                        policy.markRewardedShown()
                         onRewardEarned(rewardAmount)
                     }
                     onDismiss()
@@ -191,27 +244,41 @@ class AndroidAdsManager(
     }
 
     override fun loadRewarded() {
+        if (!isSdkInitialized) return
         val activity = activityProvider() ?: return
         if (activity.isFinishing || activity.isDestroyed) return
         if (isLoadingRewarded || rewardedAd != null) return
+        val adUnitId = AdConfig.getRewardedAdUnitId() ?: return
 
         isLoadingRewarded = true
         val adRequest = AdRequest.Builder().build()
         RewardedAd.load(
             activity,
-            AdConfig.TEST_REWARDED_AD_UNIT_ID,
+            adUnitId,
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
                     rewardedAd = ad
+                    rewardedLoadedAtMs = currentTimeProvider()
+                    rewardedRetries = 0
                     isLoadingRewarded = false
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     rewardedAd = null
                     isLoadingRewarded = false
+                    if (rewardedRetries < MAX_LOAD_RETRIES) {
+                        rewardedRetries++
+                        mainHandler.postDelayed({ loadRewarded() }, retryDelayMs(rewardedRetries))
+                    }
                 }
             }
         )
+    }
+
+    private companion object {
+        const val AD_MAX_AGE_MS = 55 * 60_000L
+        const val MAX_LOAD_RETRIES = 3
+        const val RETRY_BASE_DELAY_MS = 5_000L
     }
 }
