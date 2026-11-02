@@ -83,9 +83,9 @@ base64 -w 0 tictactoe-upload-key.jks
    ```
 6. Complete the mandatory **App Content** questionnaires under **Policy and programs -> App content**:
    - **Privacy Policy URL:** Use `https://ashrafkhan19.github.io/tic-tac-toe/privacy-policy.html` (see [docs/privacy-policy.html](file:///Users/user/Documents/Tictactoe/docs/privacy-policy.html) and [docs/PRIVACY_POLICY.md](file:///Users/user/Documents/Tictactoe/docs/PRIVACY_POLICY.md)).
-   - **Ads:** Select "No, my app does not contain ads".
+   - **Ads:** Select "Yes, my app contains ads" (since Google AdMob is integrated).
    - **App Access:** Select "All functionality is available without special access".
-   - **Data Safety:** Declare that no user data is collected or shared.
+   - **Data Safety:** Declare Google Mobile Ads (device identifiers / Advertising ID collected for advertising purposes).
    - **Content rating & Target audience:** Everyone / 13+.
 
 ---

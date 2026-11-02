@@ -32,10 +32,12 @@ All preferences and stats reside in private, sandboxed device storage (Android `
 
 ---
 
-## 4. Third-Party Services & Analytics
-- **No Ads:** The application contains zero advertising networks (e.g., AdMob, Unity).
-- **No Analytics:** We do not include telemetry or analytics SDKs (e.g., Firebase, Google Analytics).
-- **No External Servers:** The application functions 100% offline.
+## 4. Advertising & Third-Party Services
+The application integrates **Google AdMob** (`com.google.android.gms:play-services-ads`) to display non-intrusive banner and interstitial advertisements in the classic Tic-Tac-Toe game mode (focus and sanctuary modules remain 100% ad-free).
+
+- **Google AdMob / Google Play Services:** Google may collect and process device identifiers (such as the Google Advertising ID / AAID), IP address, and coarse diagnostic/performance telemetry in accordance with [Google's Privacy Policy](https://policies.google.com/privacy).
+- **No Analytics / Tracking SDKs:** We do not embed telemetry or third-party behavioral analytics tools (e.g., Firebase Analytics, Adjust, Facebook Pixel).
+- **No User Account Data:** No login, profile, or contact information is collected or sent to our servers.
 
 ---
 

@@ -128,3 +128,4 @@ To add a new exercise or assessment:
    ```bash
    ./gradlew :core:jvmTest :app:shared:compileKotlinJvm :app:shared:jvmTest --no-daemon
    ```
+
