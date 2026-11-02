@@ -1,12 +1,14 @@
-package com.example.tictactoe.ui.focus
+package com.example.tictactoe.ui.focus.drills
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,36 +37,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.tictactoe.domain.focus.BackwardSpanEngine
-import com.example.tictactoe.domain.focus.CognitiveBenchmark
+import com.example.tictactoe.domain.focus.CorsiBlockEngine
 import com.example.tictactoe.ui.theme.LocalGameColors
 import kotlinx.coroutines.delay
 
 @Composable
-fun BackwardSpanScreen(
+fun CorsiBlockScreen(
     onComplete: (maxSpan: Int) -> Unit,
     onBack: () -> Unit
 ) {
     val colors = LocalGameColors.current
-    val engine = remember { BackwardSpanEngine(startingSpan = 3) }
+    val engine = remember { CorsiBlockEngine(startingSpan = 3) }
 
     var isDemonstrating by remember { mutableStateOf(true) }
-    var activeDigit by remember { mutableStateOf<Int?>(null) }
+    var highlightedIndex by remember { mutableStateOf<Int?>(null) }
     var isGameOver by remember { mutableStateOf(false) }
-    val enteredDigits = remember { mutableStateListOf<Int>() }
+    val userTaps = remember { mutableStateListOf<Int>() }
     var currentRound by remember { mutableStateOf(0) }
 
+    // Flash sequence during demonstration phase
     LaunchedEffect(currentRound, isGameOver) {
         if (!isGameOver) {
             isDemonstrating = true
-            enteredDigits.clear()
+            userTaps.clear()
             delay(500L)
             val seq = engine.currentSequence()
-            for (num in seq) {
-                activeDigit = num
-                delay(750L)
-                activeDigit = null
-                delay(250L)
+            for (tileIndex in seq) {
+                highlightedIndex = tileIndex
+                delay(650L)
+                highlightedIndex = null
+                delay(200L)
             }
             isDemonstrating = false
         }
@@ -105,7 +107,7 @@ fun BackwardSpanScreen(
                             Text("Back", color = colors.muted, fontSize = 12.sp)
                         }
                         Text(
-                            text = "BACKWARD MEMORY SPAN",
+                            text = "CORSI BLOCK MATRIX",
                             style = MaterialTheme.typography.titleSmall,
                             color = colors.primary,
                             fontWeight = FontWeight.Bold,
@@ -119,7 +121,7 @@ fun BackwardSpanScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Target Span: ${engine.currentSpan} digits",
+                            text = "Target Span: ${engine.currentSpan} blocks",
                             style = MaterialTheme.typography.bodyMedium,
                             color = colors.onSurface,
                             fontWeight = FontWeight.Bold
@@ -133,114 +135,80 @@ fun BackwardSpanScreen(
                     }
                 }
 
-                // Central Display
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .border(1.dp, colors.panelBorder, RoundedCornerShape(20.dp)),
-                    colors = CardDefaults.cardColors(containerColor = colors.panel),
-                    shape = RoundedCornerShape(20.dp)
+                // 3x3 Matrix
+                Column(
+                    modifier = Modifier.size(280.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isDemonstrating) {
-                            Text(
-                                text = if (activeDigit != null) "$activeDigit" else "...",
-                                fontSize = 72.sp,
-                                fontWeight = FontWeight.Black,
-                                color = colors.primary
-                            )
-                        } else {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "ENTER IN REVERSE",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = colors.muted,
-                                    letterSpacing = 2.sp
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = if (enteredDigits.isEmpty()) "_ ".repeat(engine.currentSequence().size) else enteredDigits.joinToString(" "),
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = colors.onSurface
-                                )
+                    for (row in 0 until 3) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            for (col in 0 until 3) {
+                                val tileIndex = row * 3 + col
+                                val isLit = highlightedIndex == tileIndex
+                                val isUserTapped = userTaps.contains(tileIndex)
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .background(
+                                            when {
+                                                isLit -> colors.primary
+                                                isUserTapped -> colors.primary.copy(alpha = 0.35f)
+                                                else -> colors.panel
+                                            },
+                                            RoundedCornerShape(14.dp)
+                                        )
+                                        .border(
+                                            1.5.dp,
+                                            if (isLit) colors.primary else colors.panelBorder,
+                                            RoundedCornerShape(14.dp)
+                                        )
+                                        .clickable(enabled = !isDemonstrating) {
+                                            userTaps.add(tileIndex)
+                                            if (userTaps.size == engine.currentSequence().size) {
+                                                val success = engine.submitSequence(userTaps.toList())
+                                                if (engine.isGameOver) {
+                                                    isGameOver = true
+                                                } else {
+                                                    currentRound++
+                                                }
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (isUserTapped) {
+                                        Text(
+                                            text = "${userTaps.indexOf(tileIndex) + 1}",
+                                            color = colors.onSurface,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
-                // Numerical Keypad (1..9, Backspace, Submit)
+                // Status text
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(bottom = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val rows = listOf(
-                        listOf(1, 2, 3),
-                        listOf(4, 5, 6),
-                        listOf(7, 8, 9)
+                    Text(
+                        text = if (isDemonstrating) "Watch the pattern carefully..." else "Repeat the sequence: ${userTaps.size} of ${engine.currentSequence().size}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isDemonstrating) colors.primary else colors.onSurface,
+                        fontWeight = FontWeight.SemiBold
                     )
-                    rows.forEach { rowNums ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            rowNums.forEach { num ->
-                                Button(
-                                    onClick = {
-                                        if (!isDemonstrating && enteredDigits.size < engine.currentSequence().size) {
-                                            enteredDigits.add(num)
-                                        }
-                                    },
-                                    enabled = !isDemonstrating,
-                                    shape = RoundedCornerShape(10.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = colors.panel),
-                                    modifier = Modifier.weight(1f).height(46.dp)
-                                ) {
-                                    Text("$num", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.onSurface)
-                                }
-                            }
-                        }
-                    }
-
-                    // Bottom Row: Clear & Submit
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { if (enteredDigits.isNotEmpty()) enteredDigits.removeLast() },
-                            enabled = !isDemonstrating && enteredDigits.isNotEmpty(),
-                            shape = RoundedCornerShape(10.dp),
-                            modifier = Modifier.weight(1f).height(46.dp)
-                        ) {
-                            Text("⌫ Del", color = colors.muted)
-                        }
-                        Button(
-                            onClick = {
-                                val success = engine.submitReverseSequence(enteredDigits.toList())
-                                if (engine.isGameOver) {
-                                    isGameOver = true
-                                } else {
-                                    currentRound++
-                                }
-                            },
-                            enabled = !isDemonstrating && enteredDigits.size == engine.currentSequence().size,
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
-                            modifier = Modifier.weight(2f).height(46.dp)
-                        ) {
-                            Text("Submit Reverse", color = colors.backgroundTop, fontWeight = FontWeight.Bold)
-                        }
-                    }
                 }
             }
         } else {
             // Results Card
-            val percentile = CognitiveBenchmark.workingMemoryPercentile(engine.maxSpanAchieved)
             Card(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 colors = CardDefaults.cardColors(containerColor = colors.panel),
@@ -251,7 +219,7 @@ fun BackwardSpanScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "BACKWARD SPAN COMPLETE",
+                        text = "SPATIAL SPAN TEST COMPLETE",
                         style = MaterialTheme.typography.titleSmall,
                         color = colors.primary,
                         fontWeight = FontWeight.Bold,
@@ -260,18 +228,22 @@ fun BackwardSpanScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "${engine.maxSpanAchieved}",
-                        fontSize = 54.sp,
+                        fontSize = 58.sp,
                         fontWeight = FontWeight.Black,
                         color = colors.onSurface
                     )
                     Text(
-                        text = "Reverse Working Memory Span",
+                        text = "Maximum Working Memory Span (Blocks)",
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.muted
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Top ${100 - percentile}% of adults • Backward recall directly trains active mental schema inversion.",
+                        text = if (engine.maxSpanAchieved >= 6) {
+                            "Above average visuospatial capacity! Your hippocampus and parietal cortex hold complex coordinate schemas effortlessly."
+                        } else {
+                            "Solid foundation! Regular spatial span drills directly expand working memory buffer limits."
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = colors.onSurface,
                         textAlign = TextAlign.Center
@@ -284,7 +256,7 @@ fun BackwardSpanScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Claim Focus XP",
+                            text = "Claim Rewards & Finish",
                             color = colors.backgroundTop,
                             fontWeight = FontWeight.Bold
                         )

@@ -35,4 +35,10 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 
 ---
 
+### Project Architecture & Scalability
+
+For details on the project structure, clean architecture boundaries, cognitive drill engines, and how to add new drills, see [Architecture Guide](./docs/ARCHITECTURE.md).
+
+---
+
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…

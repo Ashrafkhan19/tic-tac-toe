@@ -92,3 +92,4 @@ class FlankerEngine(
         return (meanIncongruent - meanCongruent).coerceAtLeast(0L)
     }
 }
+

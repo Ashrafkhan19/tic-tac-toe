@@ -1,4 +1,4 @@
-package com.example.tictactoe.ui.focus
+package com.example.tictactoe.ui.focus.hub
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background

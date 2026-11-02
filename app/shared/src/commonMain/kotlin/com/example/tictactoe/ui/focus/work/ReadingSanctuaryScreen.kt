@@ -1,4 +1,4 @@
-package com.example.tictactoe.ui.focus
+package com.example.tictactoe.ui.focus.work
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

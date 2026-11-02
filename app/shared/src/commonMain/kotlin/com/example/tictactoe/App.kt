@@ -23,30 +23,21 @@ import com.example.tictactoe.ads.LocalAdsManager
 import com.example.tictactoe.di.AppContainer
 import com.example.tictactoe.domain.focus.DailyCircuitState
 import com.example.tictactoe.domain.focus.FocusXpRules
+import com.example.tictactoe.navigation.ScreenRoute
 import com.example.tictactoe.presentation.Intent
 import com.example.tictactoe.ui.GameContent
-import com.example.tictactoe.ui.focus.CognitiveAnalyticsScreen
-import com.example.tictactoe.ui.focus.FocusTimerScreen
-import com.example.tictactoe.ui.focus.GymScreen
-import com.example.tictactoe.ui.focus.NeuroLabScreen
-import com.example.tictactoe.ui.focus.ReadingSanctuaryScreen
-import com.example.tictactoe.ui.focus.SomaticResetScreen
-import com.example.tictactoe.ui.focus.UrgeSurferScreen
-import com.example.tictactoe.ui.focus.WakefulRestScreen
+import com.example.tictactoe.ui.focus.drills.NeuroLabScreen
+import com.example.tictactoe.ui.focus.hub.CognitiveAnalyticsScreen
+import com.example.tictactoe.ui.focus.hub.GymScreen
+import com.example.tictactoe.ui.focus.restoration.SomaticResetScreen
+import com.example.tictactoe.ui.focus.restoration.UrgeSurferScreen
+import com.example.tictactoe.ui.focus.restoration.WakefulRestScreen
+import com.example.tictactoe.ui.focus.work.FocusTimerScreen
+import com.example.tictactoe.ui.focus.work.ReadingSanctuaryScreen
 import com.example.tictactoe.ui.theme.LocalGameColors
 import com.example.tictactoe.ui.theme.TicTacToeTheme
 
-enum class ScreenRoute {
-    GYM,
-    URGE_SURFER,
-    NEURO_LAB,
-    DEEP_READING,
-    FOCUS_TIMER,
-    STRATEGY_GAME,
-    SOMATIC_RESET,
-    WAKEFUL_REST,
-    ANALYTICS
-}
+typealias ScreenRoute = com.example.tictactoe.navigation.ScreenRoute
 
 @Composable
 fun App(container: AppContainer = remember { AppContainer() }) {

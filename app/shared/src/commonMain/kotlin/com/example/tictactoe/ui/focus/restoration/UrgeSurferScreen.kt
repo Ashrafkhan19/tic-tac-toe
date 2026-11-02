@@ -1,4 +1,4 @@
-package com.example.tictactoe.ui.focus
+package com.example.tictactoe.ui.focus.restoration
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

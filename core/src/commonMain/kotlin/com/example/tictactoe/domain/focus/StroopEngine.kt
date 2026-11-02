@@ -16,6 +16,10 @@ data class StroopTrial(
     val isCongruent: Boolean = word == fontColor
 )
 
+/**
+ * Stroop color-word interference drill engine.
+ * Measures and exercises prefrontal inhibition against automatic semantic reading reflexes.
+ */
 class StroopEngine(
     val totalTrials: Int = 30,
     seed: Long = System.currentTimeMillis()
@@ -24,7 +28,6 @@ class StroopEngine(
     private val trials: List<StroopTrial>
     private var currentIndex = 0
     private var correctCount = 0
-    private var answeredCurrent = false
 
     init {
         val colors = StroopColor.entries.toTypedArray()
@@ -62,16 +65,5 @@ class StroopEngine(
         if (correct) correctCount++
         currentIndex++
         return correct
-    }
-}
-
-class NBackEngine(
-    val sequence: List<String>,
-    val n: Int = 2
-) {
-    fun currentStimulus(index: Int): String = sequence[index]
-    fun isMatch(index: Int): Boolean {
-        if (index < n || index >= sequence.size) return false
-        return sequence[index] == sequence[index - n]
     }
 }
