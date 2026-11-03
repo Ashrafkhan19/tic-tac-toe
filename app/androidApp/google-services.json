@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "601676881029",
+    "project_id": "tic-tac-toe-daily-challenge",
+    "storage_bucket": "tic-tac-toe-daily-challenge.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:601676881029:android:7b98becafbaa1fc6ee9dec",
+        "android_client_info": {
+          "package_name": "studio.gameloop.tictactoe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1LzclDBQEhrvPyLXeehEfrBePJb0RvGE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

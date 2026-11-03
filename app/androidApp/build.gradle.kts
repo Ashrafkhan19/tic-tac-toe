@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.googleServices)
+    alias(libs.plugins.firebaseCrashlytics)
 }
 
 kotlin {
@@ -16,6 +18,9 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.foundation)
     implementation(libs.playServicesAds)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)
@@ -31,8 +36,8 @@ android {
         applicationId = "studio.gameloop.tictactoe"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = project.findProperty("versionCode")?.toString()?.toIntOrNull() ?: 4
-        versionName = project.findProperty("versionName")?.toString() ?: "1.1"
+        versionCode = project.findProperty("versionCode")?.toString()?.toIntOrNull() ?: 5
+        versionName = project.findProperty("versionName")?.toString() ?: "1.4"
     }
     val envKeystorePath = System.getenv("KEYSTORE_PATH")
     val keystoreFile = envKeystorePath?.takeIf { it.isNotBlank() }?.let { path ->

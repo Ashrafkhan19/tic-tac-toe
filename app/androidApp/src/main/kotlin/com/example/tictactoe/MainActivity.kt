@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.example.tictactoe.ads.AndroidAdsManager
+import com.example.tictactoe.analytics.AndroidAnalyticsTracker
 import com.example.tictactoe.di.AppContainer
 import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val container = sharedAppContainer ?: AppContainer(adsManager = ads).also {
+        val container = sharedAppContainer ?: AppContainer(adsManager = ads, analytics = AndroidAnalyticsTracker(appContext)).also {
             sharedAppContainer = it
         }
 

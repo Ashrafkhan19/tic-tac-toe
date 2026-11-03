@@ -36,6 +36,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tictactoe.ads.AdsManager
 import com.example.tictactoe.ads.LocalAdsManager
+import com.example.tictactoe.analytics.AnalyticsEvents
+import com.example.tictactoe.analytics.LocalAnalyticsTracker
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.model.Difficulty
 import com.example.tictactoe.domain.model.GameMove
@@ -114,6 +116,7 @@ internal fun computeCompletedOutcomeKey(
 internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalGameColors.current
     val adsManager = LocalAdsManager.current
+    val analytics = LocalAnalyticsTracker.current
     val outcome = ui.currentOutcome
     val vsCpu = ui.mode == Mode.VsComputer
 
@@ -131,6 +134,14 @@ internal fun GameContent(ui: UiState, onIntent: (Intent) -> Unit, modifier: Modi
             if (lastRecordedOutcome != completedOutcomeKey) {
                 lastRecordedOutcome = completedOutcomeKey
                 adsManager.onGameCompleted()
+                analytics.logEvent(
+                    AnalyticsEvents.GAME_COMPLETE,
+                    mapOf(
+                        AnalyticsEvents.PARAM_VARIANT to ui.variant.toString(),
+                        AnalyticsEvents.PARAM_MODE to (if (vsCpu) "vs_computer" else "two_player"),
+                        AnalyticsEvents.PARAM_OUTCOME to outcome.toString(),
+                    ),
+                )
             }
         } else {
             lastRecordedOutcome = null

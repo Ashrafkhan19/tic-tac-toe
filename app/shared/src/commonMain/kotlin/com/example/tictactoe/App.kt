@@ -9,6 +9,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,6 +21,8 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tictactoe.ads.LocalAdsManager
+import com.example.tictactoe.analytics.AnalyticsEvents
+import com.example.tictactoe.analytics.LocalAnalyticsTracker
 import com.example.tictactoe.di.AppContainer
 import com.example.tictactoe.domain.focus.DailyCircuitState
 import com.example.tictactoe.domain.focus.FocusXpRules
@@ -41,11 +44,28 @@ typealias ScreenRoute = com.example.tictactoe.navigation.ScreenRoute
 
 @Composable
 fun App(container: AppContainer = remember { AppContainer() }) {
-    CompositionLocalProvider(LocalAdsManager provides container.adsManager) {
+    CompositionLocalProvider(
+        LocalAdsManager provides container.adsManager,
+        LocalAnalyticsTracker provides container.analytics,
+    ) {
         TicTacToeTheme {
             var currentRoute by remember { mutableStateOf(ScreenRoute.GYM) }
             var playerProgress by remember { mutableStateOf(container.progressRepository.load()) }
             var dailyCircuit by remember { mutableStateOf(DailyCircuitState(dateIso = "today")) }
+
+            val analytics = container.analytics
+            fun logWorkout(type: String, xp: Int, params: Map<String, Any> = emptyMap()) = analytics.logEvent(
+                AnalyticsEvents.WORKOUT_COMPLETE,
+                params + mapOf(AnalyticsEvents.PARAM_TYPE to type, AnalyticsEvents.PARAM_XP to xp),
+            )
+            fun logBest(metric: String, value: Number) = analytics.logEvent(
+                AnalyticsEvents.NEW_PERSONAL_BEST,
+                mapOf(AnalyticsEvents.PARAM_METRIC to metric, AnalyticsEvents.PARAM_VALUE to value),
+            )
+
+            LaunchedEffect(currentRoute) {
+                analytics.logScreenView(currentRoute.name.lowercase())
+            }
 
             when (currentRoute) {
                 ScreenRoute.GYM -> {
@@ -70,6 +90,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                                 )
                                 container.progressRepository.save(updated)
                                 playerProgress = updated
+                                analytics.logEvent(AnalyticsEvents.FOUNDATION_LOGGED, mapOf(AnalyticsEvents.PARAM_TYPE to "sleep"))
                             }
                         },
                         onToggleMovementFoundation = {
@@ -82,9 +103,11 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                                 )
                                 container.progressRepository.save(updated)
                                 playerProgress = updated
+                                analytics.logEvent(AnalyticsEvents.FOUNDATION_LOGGED, mapOf(AnalyticsEvents.PARAM_TYPE to "movement"))
                             }
                         },
                         onClaimRewardedXp = { bonusXp ->
+                            analytics.logEvent(AnalyticsEvents.REWARDED_XP_CLAIMED, mapOf(AnalyticsEvents.PARAM_XP to bonusXp))
                             val updated = playerProgress.copy(xp = playerProgress.xp + bonusXp)
                             container.progressRepository.save(updated)
                             playerProgress = updated
@@ -94,6 +117,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                 ScreenRoute.URGE_SURFER -> {
                     UrgeSurferScreen(
                         onFinished = { xp ->
+                            logWorkout("urge_surfer", xp)
                             val updated = playerProgress.copy(
                                 xp = playerProgress.xp + xp,
                                 urgesSurfedCount = playerProgress.urgesSurfedCount + 1
@@ -110,6 +134,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                     NeuroLabScreen(
                         onDrillComplete = { score ->
                             val xp = if (score >= 80) 35 else 20
+                            logWorkout("neuro_lab", xp, mapOf(AnalyticsEvents.PARAM_SCORE to score))
                             val updated = playerProgress.copy(
                                 xp = playerProgress.xp + xp,
                                 bestInhibitionPercent = maxOf(playerProgress.bestInhibitionPercent, score)
@@ -125,6 +150,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                         onRecordReactionTime = { ms ->
                             val currentBest = playerProgress.bestReactionMs
                             if (currentBest == 0L || ms < currentBest) {
+                                logBest("reaction_ms", ms)
                                 val updated = playerProgress.copy(bestReactionMs = ms)
                                 container.progressRepository.save(updated)
                                 playerProgress = updated
@@ -132,6 +158,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                         },
                         onRecordSpatialSpan = { span ->
                             if (span > playerProgress.bestSpatialSpan) {
+                                logBest("spatial_span", span)
                                 val updated = playerProgress.copy(bestSpatialSpan = span)
                                 container.progressRepository.save(updated)
                                 playerProgress = updated
@@ -140,6 +167,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                         onRecordFlexibility = { timeSec ->
                             val currentBest = playerProgress.bestFlexibilitySeconds
                             if (currentBest == 0.0 || timeSec < currentBest) {
+                                logBest("flexibility_sec", timeSec)
                                 val updated = playerProgress.copy(bestFlexibilitySeconds = timeSec)
                                 container.progressRepository.save(updated)
                                 playerProgress = updated
@@ -147,6 +175,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                         },
                         onRecordMathSpeed = { ops ->
                             if (ops > playerProgress.bestMathPerMinute) {
+                                logBest("math_per_min", ops)
                                 val updated = playerProgress.copy(bestMathPerMinute = ops)
                                 container.progressRepository.save(updated)
                                 playerProgress = updated
@@ -159,6 +188,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                     ReadingSanctuaryScreen(
                         onArticleFinished = { _, score ->
                             val xp = FocusXpRules.xpForDeepReading(score)
+                            logWorkout("deep_reading", xp, mapOf(AnalyticsEvents.PARAM_SCORE to score))
                             val updated = playerProgress.copy(
                                 xp = playerProgress.xp + xp,
                                 totalFocusMinutes = playerProgress.totalFocusMinutes + 5
@@ -178,6 +208,13 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                     FocusTimerScreen(
                         onSessionComplete = { durationMinutes, distractions ->
                             val xp = FocusXpRules.xpForFocusSession(durationMinutes, distractions)
+                            logWorkout(
+                                "focus_timer", xp,
+                                mapOf(
+                                    AnalyticsEvents.PARAM_DURATION_MIN to durationMinutes,
+                                    AnalyticsEvents.PARAM_DISTRACTIONS to distractions,
+                                ),
+                            )
                             val updated = playerProgress.copy(
                                 xp = playerProgress.xp + xp,
                                 totalFocusMinutes = playerProgress.totalFocusMinutes + durationMinutes
@@ -205,6 +242,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                 ScreenRoute.SOMATIC_RESET -> {
                     SomaticResetScreen(
                         onFinished = { xp ->
+                            logWorkout("somatic_reset", xp)
                             val updated = playerProgress.copy(xp = playerProgress.xp + xp)
                             container.progressRepository.save(updated)
                             playerProgress = updated
@@ -216,6 +254,7 @@ fun App(container: AppContainer = remember { AppContainer() }) {
                 ScreenRoute.WAKEFUL_REST -> {
                     WakefulRestScreen(
                         onFinished = { xp ->
+                            logWorkout("wakeful_rest", xp)
                             val updated = playerProgress.copy(xp = playerProgress.xp + xp)
                             container.progressRepository.save(updated)
                             playerProgress = updated

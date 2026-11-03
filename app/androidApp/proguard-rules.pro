@@ -27,3 +27,7 @@
 # Multiplatform Settings
 -dontwarn com.russhwolf.settings.**
 -keep class com.russhwolf.settings.** { *; }
+
+# WorkManager's Room database: old Room consumer rules don't keep the generated
+# constructor, and R8 full mode strips it, breaking WorkManager init at startup.
+-keep class * extends androidx.room.RoomDatabase { <init>(); }

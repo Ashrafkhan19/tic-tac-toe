@@ -2,6 +2,8 @@ package com.example.tictactoe.di
 
 import com.example.tictactoe.ads.AdsManager
 import com.example.tictactoe.ads.NoOpAdsManager
+import com.example.tictactoe.analytics.AnalyticsTracker
+import com.example.tictactoe.analytics.NoOpAnalyticsTracker
 import com.example.tictactoe.data.SettingsProgressRepository
 import com.example.tictactoe.domain.challenge.DailyChallengeGenerator
 import com.example.tictactoe.domain.player.ComputerPlayerProvider
@@ -38,6 +40,7 @@ class AppContainer(
     val progressRepository: ProgressRepository = defaultProgressRepository(),
     private val todayProvider: TodayProvider = SystemTodayProvider(),
     val adsManager: AdsManager = NoOpAdsManager(),
+    val analytics: AnalyticsTracker = NoOpAnalyticsTracker(),
 ) {
     fun createGameViewModel(): GameViewModel = GameViewModel(
         reducer = GameReducer(
